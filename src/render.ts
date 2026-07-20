@@ -330,7 +330,8 @@ export function renderBattle(ctx: CanvasRenderingContext2D, b: Battle, cam: Came
   for (const u of b.units) {
     const sx = u.x - cam.x;
     if (sx < -140 || sx > VIEW_W + 140) continue;
-    const facing = u.side === 'player' ? 1 : -1;
+    const sideDir = u.side === 'player' ? 1 : -1;
+    const facing: 1 | -1 = u.def.layer === 'air' && u.vx !== 0 ? (u.vx > 0 ? 1 : -1) : sideDir;
     let color = u.side === 'player' ? PLAYER_COLOR : ENEMY_COLOR;
     if (u.def.layer === 'sub') color = u.side === 'player' ? 'rgba(24,26,30,0.75)' : 'rgba(168,31,38,0.75)';
     if (u.flash > 0) color = '#fff';
