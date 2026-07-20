@@ -1,6 +1,13 @@
 import { ERAS, STAGES } from './data';
 import { lang, nameOf, t, toggleLang } from './i18n';
+import { drawUnitSilhouette } from './silhouettes';
 import { VIEW_H, VIEW_W } from './types';
+
+const ERA_THEME: Record<string, { accent: string; dim: string; panel: string; flagship: string; escort: string }> = {
+  ww1: { accent: '#c9a15a', dim: '#6e5a38', panel: '#17150f', flagship: 'dreadnought', escort: 'biplane' },
+  ww2: { accent: '#7fa3c7', dim: '#46586c', panel: '#121519', flagship: 'carrier', escort: 'fighter' },
+  modern: { accent: '#5ad0c0', dim: '#356e66', panel: '#0f1717', flagship: 'aegis', escort: 'jet' },
+};
 
 const LANG_BTN = { x: VIEW_W - 190, y: 16, w: 174, h: 32 };
 
@@ -100,28 +107,51 @@ export class Menu {
     const startX = (VIEW_W - colW * 3 - gap * 2) / 2;
     ERAS.forEach((era, ei) => {
       const cx = startX + ei * (colW + gap);
-      ctx.fillStyle = '#c9ccd2';
+      const th = ERA_THEME[era.id];
+      // themed column panel
+      ctx.fillStyle = th.panel;
+      ctx.fillRect(cx - 10, 108, colW + 20, 452);
+      ctx.strokeStyle = th.dim;
+      ctx.strokeRect(cx - 10, 108, colW + 20, 452);
+      ctx.fillStyle = th.accent;
+      ctx.fillRect(cx - 10, 108, colW + 20, 3);
+      // era header
+      ctx.fillStyle = th.accent;
       ctx.font = 'bold 18px monospace';
+      ctx.textAlign = 'center';
       ctx.fillText(lang === 'zh' ? nameOf(era.id, era.name) : era.name.toUpperCase(), cx + colW / 2, 140);
       ctx.fillStyle = '#6a6f78';
       ctx.font = '13px monospace';
       ctx.fillText(era.years, cx + colW / 2, 162);
+      // flagship banner: sea line + era flagship & escort silhouettes drifting
+      const by = 218;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(cx, 172, colW, 66);
+      ctx.clip();
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.fillRect(cx, by, colW, 1.5);
+      const drift = Math.sin(time * 0.6 + ei * 2.1) * 8;
+      drawUnitSilhouette(ctx, th.flagship, 'sea', cx + colW / 2 + drift, by, 0.62, 1, th.dim);
+      drawUnitSilhouette(ctx, th.escort, 'air', cx + colW / 2 - 90 - drift, 190, 0.5, 1, th.dim);
+      ctx.restore();
       const eraStages = STAGES.filter(s => s.era === era.id);
       eraStages.forEach((stage, si) => {
         const idx = STAGES.indexOf(stage);
         const locked = idx > this.unlocked;
-        const y = 190 + si * 108;
+        const y = 252 + si * 102;
         ctx.fillStyle = locked ? '#181a1e' : '#22262e';
-        ctx.fillRect(cx, y, colW, 92);
-        ctx.strokeStyle = locked ? '#2a2d33' : '#4a5260';
-        ctx.strokeRect(cx, y, colW, 92);
+        ctx.fillRect(cx, y, colW, 88);
+        ctx.strokeStyle = locked ? '#2a2d33' : th.dim;
+        ctx.strokeRect(cx, y, colW, 88);
+        if (!locked) { ctx.fillStyle = th.accent; ctx.fillRect(cx, y, 3, 88); }
         ctx.fillStyle = locked ? '#4a4d55' : '#e8e6e0';
         ctx.font = 'bold 16px monospace';
         ctx.fillText(`${si + 1}. ${nameOf(stage.id, stage.name)}`, cx + colW / 2, y + 34);
         ctx.font = '12px monospace';
         ctx.fillStyle = locked ? '#3a3d45' : '#7d8390';
-        ctx.fillText(locked ? t('lockedHint') : stage.bossAt ? t('flagshipBattle') : t('navalAssault'), cx + colW / 2, y + 60);
-        this.cards.push({ id: stage.id, x: cx, y, w: colW, h: 92, locked });
+        ctx.fillText(locked ? t('lockedHint') : stage.bossAt ? t('flagshipBattle') : t('navalAssault'), cx + colW / 2, y + 58);
+        this.cards.push({ id: stage.id, x: cx, y, w: colW, h: 88, locked });
       });
     });
     ctx.fillStyle = '#5a5f68';
