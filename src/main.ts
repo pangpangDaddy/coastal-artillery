@@ -37,6 +37,7 @@ let camera = new Camera();
 let hud = new Hud();
 let paused = false;
 let muteToggled = false;
+let unlockSaved = false;
 
 function startStage(stageId: string) {
   battle = new Battle(stageId);
@@ -44,6 +45,7 @@ function startStage(stageId: string) {
   hud = new Hud();
   camera.x = 0;
   mode = 'battle';
+  unlockSaved = false;
 }
 
 function backToMenu() {
@@ -73,10 +75,12 @@ function update(dt: number) {
   if (input.pressed('Escape')) paused = !paused;
 
   if (battle.result) {
+    if (battle.result === 'win' && !unlockSaved) {
+      unlockSaved = true;
+      saveUnlocked(STAGES.findIndex(s => s.id === battle!.stage.id) + 1);
+    }
     if (input.pressed('Enter') || input.pressed('NumpadEnter')) {
       if (battle.result === 'win') {
-        const idx = STAGES.findIndex(s => s.id === battle!.stage.id);
-        saveUnlocked(idx + 1);
         const next = nextStageId(battle.stage.id);
         if (next) startStage(next); else backToMenu();
       } else {

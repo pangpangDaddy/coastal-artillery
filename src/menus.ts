@@ -40,9 +40,15 @@ export class Menu {
   private armoryBtn = { x: 16, y: 16, w: 150, h: 32 };
   private armoryRows: { id: string; action: 'buy' | 'upgrade'; x: number; y: number; w: number; h: number }[] = [];
 
+  private unlockAll: boolean;
+
   constructor(unlockAll = false) {
-    void unlockAll;
-    this.unlocked = STAGES.length - 1;
+    this.unlockAll = unlockAll;
+    this.unlocked = unlockAll ? STAGES.length - 1 : loadUnlocked();
+  }
+
+  refreshUnlocked() {
+    if (!this.unlockAll) this.unlocked = loadUnlocked();
   }
 
   // returns stage id if one was chosen
