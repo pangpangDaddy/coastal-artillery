@@ -58,6 +58,7 @@ const ZH_NAMES: Record<string, string> = {
   // ww2 units
   destroyer: '驱逐舰', battleship: '战列舰', carrier: '航空母舰', submarine_ww2: '潜艇',
   fighter_ww2: '战斗机', torpedo_bomber: '鱼雷机', boss_yamato: '大和级',
+  pt_boat: '鱼雷艇', cruiser_ww2: '重巡洋舰', dive_bomber: '俯冲轰炸机',
   // modern units
   lcs: '濒海战斗舰', missile_destroyer: '导弹驱逐舰', aegis_cruiser: '宙斯盾巡洋舰',
   nuke_sub: '攻击核潜艇', jet_fighter: '喷气战机', uav: '察打无人机', boss_carrier: '超级航母',
@@ -75,8 +76,9 @@ const ZH_NAMES: Record<string, string> = {
 const ZH_DESCS: Record<string, string> = {
   gunboat: '快速护航舰，猎杀U艇', cruiser_ww1: '火力与装甲均衡', dreadnought: '重型战列舰，缓慢但火力凶猛',
   uboat: '潜艇，免疫火炮——用深水炸弹或潜艇对付', biplane: '脆弱但敏捷的侦察战机', zeppelin: '缓慢的轰炸飞艇，大范围溅射',
-  destroyer: '护航舰，猎杀潜艇', battleship: '巨炮浮动堡垒', carrier: '持续放出舰载战斗机',
+  destroyer: '护航舰，猎杀潜艇', battleship: '巨炮：射程极远，装弹缓慢', carrier: '持续放出舰载战斗机',
   submarine_ww2: '远程鱼雷伏击者', fighter_ww2: '空战好手，携轻型炸弹', torpedo_bomber: '来自天空的军舰杀手',
+  pt_boat: '高速鱼雷快艇，打了就跑', cruiser_ww2: '8英寸重炮，快速坚固', dive_bomber: '高空俯冲投下重磅炸弹',
   lcs: '快速多用途战舰', missile_destroyer: 'VLS导弹超视距打击', aegis_cruiser: '舰队防空与打击核心',
   nuke_sub: '无声的重鱼雷猎手', jet_fighter: '超音速制空战机', uav: '防区外精确打击无人机',
   howitzer_ww1: '远程反舰火炮', aa_nest_ww1: '速射防空机枪', coastal_ww2: '重型炮廓火炮',

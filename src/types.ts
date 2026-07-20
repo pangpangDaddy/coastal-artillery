@@ -90,6 +90,8 @@ export interface StageDef {
   playerBaseHp: number;
   enemyPool: string[];
   enemyTurrets: { defId: string; slot: number }[];
+  playerUnits: string[];
+  playerTurrets: string[];
   waves: WaveDef[];
   bossAt?: number;
 }

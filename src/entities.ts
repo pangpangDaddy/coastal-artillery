@@ -115,7 +115,7 @@ function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, 
       p.vx = (dx / d) * weapon.projSpeed;
       p.vy = (dy / d) * weapon.projSpeed - weapon.projSpeed * arc * 0.5;
       b.effects.muzzle(ox, oy);
-      b.sound.fire(weapon.damage > 50);
+      if (weapon.damage >= 90) b.sound.bigGun(); else b.sound.fire(weapon.damage > 50);
       break;
     }
     case 'bullet': {

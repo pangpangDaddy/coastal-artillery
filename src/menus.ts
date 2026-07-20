@@ -36,7 +36,8 @@ export class Menu {
   private cards: { id: string; x: number; y: number; w: number; h: number; locked: boolean }[] = [];
 
   constructor(unlockAll = false) {
-    this.unlocked = unlockAll ? STAGES.length - 1 : loadUnlocked();
+    void unlockAll;
+    this.unlocked = STAGES.length - 1;
   }
 
   // returns stage id if one was chosen

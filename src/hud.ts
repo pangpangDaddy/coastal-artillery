@@ -29,12 +29,12 @@ export class Hud {
     const btns: Button[] = [];
     let x = 14;
     const y = VIEW_H - HUD_H + 34;
-    for (const id of b.era.units) {
+    for (const id of b.stage.playerUnits) {
       btns.push({ kind: 'unit', id, x, y });
       x += BTN + BTN_GAP;
     }
     x += 18;
-    for (const id of b.era.turrets) {
+    for (const id of b.stage.playerTurrets) {
       btns.push({ kind: 'turret', id, x, y });
       x += BTN + BTN_GAP;
     }

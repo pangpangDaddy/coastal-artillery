@@ -124,6 +124,41 @@ const SHIPS: Record<string, (ctx: Ctx) => void> = {
     ellipse(ctx, -44, -10, 2, 2);
     ellipse(ctx, -40, -10, 2, 2);
   },
+  // Elco 80' PT boat: planing hull with hard chine, small charthouse, torpedo tubes angled outboard
+  pt_boat(ctx) {
+    poly(ctx, [[-42, -7], [30, -7], [50, -2], [46, 4], [-38, 4], [-42, 0]]);
+    // low charthouse with windshield rake
+    poly(ctx, [[-6, -7], [14, -7], [10, -16], [-2, -16]]);
+    rect(ctx, -14, -20, 1.2, 13);
+    // twin torpedo tubes on deck edge, angled out
+    barrel(ctx, 18, -8, 16, -0.06, 3);
+    barrel(ctx, -18, -8, 14, Math.PI + 0.06, 3);
+    // aft AA mount
+    rect(ctx, -28, -10, 6, 3);
+    barrel(ctx, -25, -10, 10, -0.5, 1.4);
+  },
+  // Baltimore-class heavy cruiser (1943): long forecastle, two triple 8" turrets fore + one aft, twin funnels, tower bridge
+  cruiser_ww2(ctx) {
+    poly(ctx, [[-50, -11], [48, -11], [63, -6], [61, -3], [55, 7], [-44, 7], [-48, -1]]);
+    // superfiring triple 8-inch turrets fore
+    poly(ctx, [[22, -11], [38, -11], [36, -18], [24, -18]]);
+    barrel(ctx, 34, -14.5, 22, -0.09, 2.2);
+    poly(ctx, [[12, -18], [26, -18], [24, -24], [14, -24]]);
+    barrel(ctx, 23, -21, 20, -0.09, 2.2);
+    // aft turret
+    poly(ctx, [[-38, -11], [-24, -11], [-26, -18], [-36, -18]]);
+    barrel(ctx, -34, -14.5, 20, Math.PI + 0.09, 2.2);
+    // tower bridge + fire-control top
+    rect(ctx, 0, -28, 11, 17);
+    rect(ctx, 3, -34, 5, 6);
+    // two upright funnels
+    poly(ctx, [[-8, -27], [-2, -27], [0, -11], [-6, -11]]);
+    poly(ctx, [[-18, -26], [-12, -26], [-10, -11], [-16, -11]]);
+    // mainmast + AA tubs
+    rect(ctx, -21, -33, 1.4, 22);
+    rect(ctx, 14, -14, 5, 3);
+    rect(ctx, -44, -14, 5, 3);
+  },
   // Essex-class carrier (1943): full-length flight deck, compact starboard island with integrated funnel and tripod mast
   carrier(ctx) {
     poly(ctx, [[-52, -8], [52, -8], [62, -3], [56, 6], [-48, 6], [-52, 0]]);
@@ -304,6 +339,21 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     rect(ctx, -6, 11, 26, 4);
     poly(ctx, [[20, 11], [26, 13], [20, 15]]);
   },
+  // SBD Dauntless dive bomber: stout fuselage, long greenhouse canopy, big bomb on displacing cradle under belly
+  divebomber(ctx) {
+    poly(ctx, [[28, -1], [21, -5], [-6, -6], [-24, -2], [-24, 2], [-6, 6], [21, 5], [28, 1]]);
+    // long stepped canopy
+    poly(ctx, [[13, -6], [9, -10], [-10, -10], [-14, -6]]);
+    // wing chord
+    poly(ctx, [[13, 4], [-3, 5], [-11, 9], [9, 8]]);
+    // tall rounded fin + tailplane
+    poly(ctx, [[-19, -3], [-26, -14], [-22, -1]]);
+    rect(ctx, -29, -2, 9, 3);
+    // propeller + big centreline bomb
+    rect(ctx, 28, -10, 2, 20);
+    ellipse(ctx, 4, 11, 9, 3);
+    poly(ctx, [[13, 9], [17, 11], [13, 13]]);
+  },
   jet(ctx) {
     // pointed nose, sleek fuselage
     poly(ctx, [[32, 0], [20, -4], [-6, -5], [-24, -3], [-24, 3], [-6, 5], [20, 4]]);
@@ -318,19 +368,24 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     // exhaust nozzle
     rect(ctx, -27, -2, 4, 5);
   },
+  // MQ-9 Reaper: bulged sensor nose, long straight wing, V-tail, rear pusher propeller
   uav(ctx) {
-    // slender fuselage with bulbous sensor nose
-    poly(ctx, [[18, -2], [-20, -2], [-20, 2], [18, 2]]);
-    ellipse(ctx, 18, 0, 7, 4);
-    // sensor ball under chin
-    ellipse(ctx, 14, 5, 3, 3);
-    // long thin wing (chord)
-    rect(ctx, -6, -3.5, 20, 2);
-    // inverted-V tail
-    poly(ctx, [[-16, 1], [-25, 10], [-21, 1]]);
-    poly(ctx, [[-16, -1], [-24, -8], [-20, -1]]);
-    // rear pusher propeller
-    rect(ctx, -27, -7, 2, 14);
+    // fuselage with bulged satcom nose fairing
+    poly(ctx, [[20, -1], [14, -4], [-18, -3], [-24, -1], [-24, 1], [-18, 3], [14, 3], [20, 1]]);
+    ellipse(ctx, 16, -1.5, 7, 4.5);
+    // chin sensor turret ball
+    ellipse(ctx, 10, 4.5, 3.5, 3.5);
+    // long high-aspect wing across mid-fuselage
+    rect(ctx, -30, -2.5, 24, 2.2);
+    rect(ctx, 2, -2.5, 26, 2.2);
+    // V-tail (upper) + ventral fin
+    poly(ctx, [[-18, -2], [-28, -12], [-23, -12], [-15, -3]]);
+    poly(ctx, [[-18, 2], [-25, 9], [-21, 9], [-14, 3]]);
+    // pusher prop disc behind tail
+    rect(ctx, -27, -8, 1.8, 16);
+    // wing-hardpoint missiles
+    rect(ctx, 6, 0.5, 8, 1.6);
+    rect(ctx, -16, 0.5, 8, 1.6);
   },
 };
 

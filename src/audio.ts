@@ -53,6 +53,14 @@ export class Sound {
     this.tone(ctx, heavy ? 70 : 120, 0.2, 0.3, 'sine', -40);
   }
 
+  // battleship-class main gun: deep long boom with sub-bass rumble
+  bigGun() {
+    const ctx = this.ensure(); if (!ctx) return;
+    this.noise(ctx, 0.7, 260, 1.1);
+    this.tone(ctx, 48, 0.6, 0.55, 'sine', -22);
+    this.tone(ctx, 90, 0.35, 0.3, 'triangle', -55);
+  }
+
   mg() {
     const ctx = this.ensure(); if (!ctx) return;
     this.noise(ctx, 0.06, 1800, 0.18, 'highpass');

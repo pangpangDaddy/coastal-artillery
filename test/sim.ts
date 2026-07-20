@@ -1,10 +1,10 @@
 // Headless balance simulation: plays every stage with a reasonable policy and reports outcomes.
 import { Battle } from '../src/battle';
 import { STAGES, UNITS, TURRETS, WEAPONS } from '../src/data';
-import { EraDef } from '../src/types';
+import { StageDef } from '../src/types';
 
-function cheapestAntiSub(era: EraDef) {
-  return era.units
+function cheapestAntiSub(stage: StageDef) {
+  return stage.playerUnits
     .map(id => UNITS[id])
     .filter(u => u.weapons.some(w => WEAPONS[w].targets.includes('sub')))
     .sort((a, b) => a.cost - b.cost)[0];
@@ -18,9 +18,9 @@ function playStage(stageId: string, maxSeconds = 900) {
   while (!b.result && b.time < maxSeconds) {
     b.update(dt);
     // turrets: fill first two slots, cheaper turret first for faster defense
-    const turretOrder = [...b.era.turrets].sort((a, z) => TURRETS[a].cost - TURRETS[z].cost);
+    const turretOrder = [...b.stage.playerTurrets].sort((a, z) => TURRETS[a].cost - TURRETS[z].cost);
     if (turretSlot < 2) {
-      const tDef = turretOrder[turretSlot];
+      const tDef = turretOrder[Math.min(turretSlot, turretOrder.length - 1)];
       if (b.resource >= TURRETS[tDef].cost && b.buyTurret(tDef, turretSlot)) turretSlot++;
     }
     // anti-sub reaction: keep one hunter per active enemy sub
@@ -29,11 +29,11 @@ function playStage(stageId: string, maxSeconds = 900) {
       u => u.side === 'player' && u.def.weapons.some(w => WEAPONS[w].targets.includes('sub')),
     ).length;
     if (enemySubs > antiSubs) {
-      const as = cheapestAntiSub(b.era);
+      const as = cheapestAntiSub(b.stage);
       if (as && b.resource >= as.cost && b.buyUnit(as.id)) continue;
     }
     // squad buying: cheap units promptly, expensive ones wait for a surplus
-    const uid = b.era.units[unitIdx % b.era.units.length];
+    const uid = b.stage.playerUnits[unitIdx % b.stage.playerUnits.length];
     const cost = UNITS[uid].cost;
     const playerUnitCount = b.units.filter(u => u.side === 'player').length;
     const surplusOk = cost <= 300 || b.resource >= cost * 1.4;
