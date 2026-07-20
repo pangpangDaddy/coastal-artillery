@@ -50,54 +50,49 @@ const SHIPS: Record<string, (ctx: Ctx) => void> = {
     ellipse(ctx, -37, -9, 2, 2);
     ellipse(ctx, -32, -9, 2, 2);
   },
-  // SMS Emden (1908) light cruiser: ram-curved bow, three slim funnels, low open gun mounts, two pole masts
+  // SMS Emden (1908) light cruiser: ram bow, three capped funnels on a deckhouse, shielded guns, two pole masts
   cruiser(ctx) {
-    poly(ctx, [[-50, -10], [50, -10], [62, -6], [58, 0], [54, 7], [-44, 7], [-48, 0]]);
-    // forecastle step
-    rect(ctx, 18, -13, 40, 3);
-    // three slim, slightly raked funnels amidships
-    poly(ctx, [[-16, -30], [-12, -30], [-10, -13], [-14, -13]]);
-    poly(ctx, [[-6, -30], [-2, -30], [0, -13], [-4, -13]]);
-    poly(ctx, [[4, -30], [8, -30], [10, -13], [6, -13]]);
-    // bridge + chart house forward
-    rect(ctx, 14, -21, 12, 8);
-    rect(ctx, 16, -25, 7, 4);
-    // low open casemate gun mounts fore and aft (shielded)
-    poly(ctx, [[30, -13], [40, -13], [38, -19], [32, -19]]);
-    barrel(ctx, 37, -16, 20, -0.1, 2.2);
-    poly(ctx, [[-38, -10], [-28, -10], [-30, -16], [-36, -16]]);
-    barrel(ctx, -35, -13, 18, Math.PI + 0.1, 2.2);
-    // two tall pole masts with yards
-    rect(ctx, 24, -38, 1.3, 25);
-    rect(ctx, 20, -34, 9, 1.3);
-    rect(ctx, -22, -36, 1.3, 26);
-    rect(ctx, -26, -32, 9, 1.3);
+    poly(ctx, [[-50, -9], [48, -9], [60, -5], [56, 1], [52, 7], [-44, 7], [-48, 0]]);
+    // central deckhouse joining the funnels
+    rect(ctx, -22, -13, 44, 4);
+    // three evenly spaced funnels with caps
+    rect(ctx, -18, -28, 6, 15); rect(ctx, -19, -29, 8, 2);
+    rect(ctx, -7, -28, 6, 15); rect(ctx, -8, -29, 8, 2);
+    rect(ctx, 4, -28, 6, 15); rect(ctx, 3, -29, 8, 2);
+    // bridge forward
+    rect(ctx, 16, -20, 12, 8);
+    rect(ctx, 18, -24, 7, 4);
+    // shielded guns fore and aft
+    poly(ctx, [[32, -12], [42, -12], [40, -18], [34, -18]]);
+    barrel(ctx, 40, -15, 18, -0.08, 2.2);
+    poly(ctx, [[-38, -9], [-28, -9], [-30, -15], [-36, -15]]);
+    barrel(ctx, -35, -12, 16, Math.PI + 0.08, 2.2);
+    // two pole masts with yards
+    rect(ctx, 28, -34, 1.4, 22);
+    rect(ctx, 24.5, -30, 9, 1.2);
+    rect(ctx, -26, -32, 1.4, 19);
+    rect(ctx, -29.5, -28, 9, 1.2);
   },
   // Queen Elizabeth-class super-dreadnought (1915): superfiring turret pairs fore/aft, tripod foremast, two funnels
   dreadnought(ctx) {
     poly(ctx, [[-54, -12], [52, -12], [66, -7], [64, -4], [56, 8], [-46, 8], [-52, 0]]);
-    // casemate secondary battery strake
-    rect(ctx, -30, -15, 60, 3);
     // A + B superfiring fore turrets
-    poly(ctx, [[24, -15], [42, -15], [40, -22], [26, -22]]);
-    barrel(ctx, 38, -19, 28, -0.07); barrel(ctx, 38, -19, 28, -0.13);
-    poly(ctx, [[14, -22], [30, -22], [28, -29], [16, -29]]);
-    barrel(ctx, 27, -26, 26, -0.07); barrel(ctx, 27, -26, 26, -0.13);
+    poly(ctx, [[28, -12], [44, -12], [42, -19], [30, -19]]);
+    barrel(ctx, 41, -16, 24, -0.1, 2.6);
+    poly(ctx, [[17, -19], [31, -19], [29, -25], [19, -25]]);
+    barrel(ctx, 28, -22, 22, -0.1, 2.6);
     // X + Y superfiring aft turrets
-    poly(ctx, [[-42, -15], [-24, -15], [-26, -22], [-40, -22]]);
-    barrel(ctx, -38, -19, 26, Math.PI + 0.07);
-    poly(ctx, [[-32, -22], [-18, -22], [-20, -28], [-30, -28]]);
-    barrel(ctx, -29, -25, 24, Math.PI + 0.07);
+    poly(ctx, [[-44, -12], [-28, -12], [-30, -19], [-42, -19]]);
+    barrel(ctx, -41, -16, 22, Math.PI + 0.1, 2.6);
+    poly(ctx, [[-33, -19], [-19, -19], [-21, -25], [-31, -25]]);
+    barrel(ctx, -30, -22, 20, Math.PI + 0.1, 2.6);
     // bridge block + tripod foremast with spotting top
-    rect(ctx, 2, -30, 10, 16);
-    poly(ctx, [[8, -15], [2, -15], [7, -40]]);
-    rect(ctx, 6.2, -44, 1.6, 30);
-    rect(ctx, 3, -42, 8, 4);
-    // two upright funnels
-    rect(ctx, -6, -33, 7, 19);
-    rect(ctx, -16, -31, 7, 17);
-    // aft pole mast
-    rect(ctx, -22, -34, 1.4, 20);
+    rect(ctx, 4, -28, 10, 16);
+    rect(ctx, 8, -40, 1.6, 28);
+    rect(ctx, 5, -38, 8, 4);
+    // two capped funnels
+    rect(ctx, -6, -31, 7, 19); rect(ctx, -7, -32, 9, 2);
+    rect(ctx, -15, -29, 6, 17); rect(ctx, -16, -30, 8, 2);
   },
   // Fletcher-class destroyer (1942): flush deck, two raked funnels, superfiring 5" mounts, torpedo tubes amidships
   destroyer(ctx) {
