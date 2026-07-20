@@ -239,29 +239,39 @@ function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam:
   ctx.fillStyle = rockLight;
   ctx.fillRect(sx(coastX) - 26, SEA_Y - 26, 30, 3);
 
-  // base fort with battlements
+  // base fortress: wide lower bastion anchored into the cliff + observation tower
   const fortX = isPlayer ? baseX + 60 : baseX - 60;
-  ctx.fillStyle = isPlayer ? '#24262b' : '#57201e';
-  ctx.fillRect(sx(fortX) - 26, SEA_Y - 192, 52, 68);
-  // merlons
-  for (let m = -2; m <= 2; m++) {
-    ctx.fillRect(sx(fortX) + m * 11 - 4, SEA_Y - 202, 8, 10);
-  }
-  // gate + slits
+  const fortDark = isPlayer ? '#24262b' : '#57201e';
+  // lower bastion, extends down into the rock so it never floats
+  ctx.fillStyle = fortDark;
+  ctx.fillRect(sx(fortX) - 34, SEA_Y - 148, 68, 90);
+  ctx.fillStyle = rockLight;
+  ctx.fillRect(sx(fortX) - 34, SEA_Y - 148, 68, 2);
+  // embrasure slit in the bastion
   ctx.fillStyle = rockDark;
-  ctx.fillRect(sx(fortX) - 7, SEA_Y - 152, 14, 28);
-  ctx.fillRect(sx(fortX) - 16, SEA_Y - 178, 4, 12);
-  ctx.fillRect(sx(fortX) + 12, SEA_Y - 178, 4, 12);
+  ctx.fillRect(sx(fortX) - 22, SEA_Y - 132, 14, 5);
+  ctx.fillRect(sx(fortX) + 8, SEA_Y - 132, 14, 5);
+  // upper observation tower
+  ctx.fillStyle = fortDark;
+  ctx.fillRect(sx(fortX) - 22, SEA_Y - 200, 44, 52);
+  // merlons
+  for (let m = -1; m <= 1; m++) {
+    ctx.fillRect(sx(fortX) + m * 15 - 4, SEA_Y - 209, 9, 9);
+  }
+  // observation slit + door
+  ctx.fillStyle = rockDark;
+  ctx.fillRect(sx(fortX) - 14, SEA_Y - 190, 28, 5);
+  ctx.fillRect(sx(fortX) - 6, SEA_Y - 172, 12, 24);
   // flag pole + waving flag
-  ctx.fillStyle = isPlayer ? '#24262b' : '#57201e';
-  ctx.fillRect(sx(fortX) - 2, SEA_Y - 240, 4, 40);
+  ctx.fillStyle = fortDark;
+  ctx.fillRect(sx(fortX) - 1.5, SEA_Y - 244, 3, 36);
   const wave = Math.sin(time * 5) * 4;
   const tip = isPlayer ? 30 : -30;
   ctx.fillStyle = isPlayer ? PLAYER_COLOR : ENEMY_COLOR;
   ctx.beginPath();
-  ctx.moveTo(sx(fortX) + 2, SEA_Y - 240);
-  ctx.quadraticCurveTo(sx(fortX) + tip * 0.6, SEA_Y - 236 + wave, sx(fortX) + tip, SEA_Y - 231 + wave);
-  ctx.quadraticCurveTo(sx(fortX) + tip * 0.6, SEA_Y - 226 + wave, sx(fortX) + 2, SEA_Y - 222);
+  ctx.moveTo(sx(fortX) + 1.5, SEA_Y - 244);
+  ctx.quadraticCurveTo(sx(fortX) + tip * 0.6, SEA_Y - 240 + wave, sx(fortX) + tip, SEA_Y - 235 + wave);
+  ctx.quadraticCurveTo(sx(fortX) + tip * 0.6, SEA_Y - 230 + wave, sx(fortX) + 1.5, SEA_Y - 226);
   ctx.closePath();
   ctx.fill();
   // sandbags at waterline
@@ -274,7 +284,7 @@ function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam:
 
   if (hitFlash > 0) {
     ctx.fillStyle = `rgba(255,80,60,${hitFlash * 2})`;
-    ctx.fillRect(sx(fortX) - 30, SEA_Y - 206, 60, 88);
+    ctx.fillRect(sx(fortX) - 38, SEA_Y - 212, 76, 156);
   }
 }
 

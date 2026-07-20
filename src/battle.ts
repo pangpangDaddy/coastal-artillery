@@ -6,10 +6,12 @@ import {
   spawnTurret, spawnUnit, updateEnemyAI, updateProjectiles, updateTurrets, updateUnits,
 } from './entities';
 import { EraDef, EraId, Projectile, StageDef, Turret, Unit } from './types';
+import { getNation, NationDef } from './nations';
 
 export class Battle {
   stage: StageDef;
   era: EraDef;
+  nation: NationDef = getNation();
   units: Unit[] = [];
   turrets: Turret[] = [];
   projectiles: Projectile[] = [];
@@ -55,9 +57,11 @@ export class Battle {
     return true;
   }
 
-  dmgMult(): number { return 1 + this.upDamage * 0.15; }
+  dmgMult(): number { return (1 + this.upDamage * 0.15) * this.nation.dmg; }
 
-  reloadMult(): number { return 1 - this.upReload * 0.1; }
+  reloadMult(): number { return (1 - this.upReload * 0.1) * this.nation.reload; }
+
+  costOf(def: { cost: number }): number { return Math.round(def.cost * this.nation.cost); }
 
   constructor(stageId: string) {
     this.stage = stageById(stageId);
@@ -74,19 +78,27 @@ export class Battle {
 
   buyUnit(defId: string): boolean {
     const def = UNITS[defId];
-    if (!def || this.resource < def.cost || this.result) return false;
-    this.resource -= def.cost;
-    spawnUnit(this, defId, 'player');
+    if (!def) return false;
+    const cost = this.costOf(def);
+    if (this.resource < cost || this.result) return false;
+    this.resource -= cost;
+    const u = spawnUnit(this, defId, 'player');
+    u.maxHp = Math.round(def.hp * this.nation.hp);
+    u.hp = u.maxHp;
     this.sound.click();
     return true;
   }
 
   buyTurret(defId: string, slot: number): boolean {
     const def = TURRETS[defId];
-    if (!def || this.resource < def.cost || this.result) return false;
+    if (!def) return false;
+    const cost = this.costOf(def);
+    if (this.resource < cost || this.result) return false;
     if (this.turrets.some(t => t.side === 'player' && t.slot === slot)) return false;
-    this.resource -= def.cost;
-    spawnTurret(this, defId, 'player', slot);
+    this.resource -= cost;
+    const tr = spawnTurret(this, defId, 'player', slot);
+    tr.maxHp = Math.round(def.hp * this.nation.hp);
+    tr.hp = tr.maxHp;
     this.sound.click();
     return true;
   }

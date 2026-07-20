@@ -157,7 +157,8 @@ export class Hud {
         continue;
       }
       const def = btn.kind === 'unit' ? UNITS[btn.id] : TURRETS[btn.id];
-      const affordable = b.resource >= def.cost;
+      const price = b.costOf(def);
+      const affordable = b.resource >= price;
       const selected = btn.kind === 'turret' && this.state.selectedTurret === btn.id;
       ctx.fillStyle = selected ? '#3d4a63' : affordable ? '#1e2126' : '#141518';
       ctx.fillRect(btn.x, btn.y, BTN, BTN);
@@ -175,7 +176,7 @@ export class Hud {
       ctx.fillStyle = affordable ? '#e8c95c' : '#555';
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(`${def.cost}`, btn.x + BTN / 2, btn.y + BTN - 5);
+      ctx.fillText(`${price}`, btn.x + BTN / 2, btn.y + BTN - 5);
       ctx.fillStyle = '#999';
       ctx.fillText(shortName(btn.id, def.name), btn.x + BTN / 2, btn.y + 11);
     }

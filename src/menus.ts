@@ -1,5 +1,6 @@
 import { ERAS, STAGES } from './data';
 import { lang, nameOf, t, toggleLang } from './i18n';
+import { getNation, NATIONS, setNation } from './nations';
 import { drawUnitSilhouette } from './silhouettes';
 import { VIEW_H, VIEW_W } from './types';
 
@@ -34,6 +35,7 @@ export class Menu {
   screen: 'title' | 'stages' = 'title';
   unlocked: number;
   private cards: { id: string; x: number; y: number; w: number; h: number; locked: boolean }[] = [];
+  private nationBtns: { id: import('./nations').NationId; x: number; y: number; w: number; h: number }[] = [];
 
   constructor(unlockAll = false) {
     void unlockAll;
@@ -49,6 +51,12 @@ export class Menu {
     if (this.screen === 'title') {
       this.screen = 'stages';
       return null;
+    }
+    for (const nb of this.nationBtns) {
+      if (cx >= nb.x && cx <= nb.x + nb.w && cy >= nb.y && cy <= nb.y + nb.h) {
+        setNation(nb.id);
+        return null;
+      }
     }
     for (const c of this.cards) {
       if (!c.locked && cx >= c.x && cx <= c.x + c.w && cy >= c.y && cy <= c.y + c.h) return c.id;
@@ -155,6 +163,35 @@ export class Menu {
         this.cards.push({ id: stage.id, x: cx, y, w: colW, h: 88, locked });
       });
     });
+    // nation picker
+    this.nationBtns = [];
+    const current = getNation();
+    const nW = 140, nGap = 12, nH = 40;
+    const ids = NATIONS;
+    const nStartX = (VIEW_W - (nW * ids.length + nGap * (ids.length - 1))) / 2;
+    const nY = 584;
+    ctx.font = '12px monospace';
+    ctx.fillStyle = '#8a8f98';
+    ctx.fillText(t('nationLabel'), VIEW_W / 2, nY - 8);
+    ids.forEach((n, i) => {
+      const x = nStartX + i * (nW + nGap);
+      const sel = current.id === n.id;
+      ctx.fillStyle = sel ? '#232a36' : '#171a1f';
+      ctx.fillRect(x, nY, nW, nH);
+      ctx.strokeStyle = sel ? n.color : '#33373f';
+      ctx.lineWidth = sel ? 2 : 1;
+      ctx.strokeRect(x, nY, nW, nH);
+      if (sel) { ctx.fillStyle = n.color; ctx.fillRect(x, nY, 3, nH); }
+      ctx.fillStyle = sel ? n.color : '#9aa0aa';
+      ctx.font = sel ? 'bold 14px monospace' : '14px monospace';
+      ctx.fillText(lang === 'zh' ? n.name[1] : n.name[0], x + nW / 2, nY + 25);
+      this.nationBtns.push({ id: n.id, x, y: nY, w: nW, h: nH });
+    });
+    ctx.lineWidth = 1;
+    ctx.fillStyle = current.color;
+    ctx.font = '12px monospace';
+    ctx.fillText(lang === 'zh' ? current.trait[1] : current.trait[0], VIEW_W / 2, nY + nH + 18);
+
     ctx.fillStyle = '#5a5f68';
     ctx.font = '13px monospace';
     ctx.fillText(t('controlsMenu'), VIEW_W / 2, VIEW_H - 40);
