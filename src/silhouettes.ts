@@ -189,27 +189,28 @@ const SHIPS: Record<string, (ctx: Ctx) => void> = {
     // low aft mission/flight deck with hangar step
     rect(ctx, -30, -10, 20, 4);
   },
-  // Arleigh Burke-class destroyer (DDG-51): flared bow, 5" gun, fore/aft VLS, slab SPY deckhouse, twin raked funnels
+  // Type 055-style stealth destroyer: raked clipper bow, integrated mast tower, clean sloped slab sides
   missile_destroyer(ctx) {
-    poly(ctx, [[-52, -10], [44, -10], [64, -6], [62, -3], [56, 7], [-46, 7], [-50, 0]]);
-    // fore VLS hatch field
-    for (let i = 0; i < 4; i++) rect(ctx, 24 + i * 4, -12, 3, 2);
-    // 5-inch enclosed gun at bow
-    poly(ctx, [[42, -10], [52, -10], [50, -15], [44, -15]]);
-    barrel(ctx, 48, -12.5, 17, -0.08, 2);
-    // deckhouse with sloped SPY-1 radar faces
-    poly(ctx, [[-4, -10], [22, -10], [17, -25], [1, -25]]);
-    rect(ctx, 3, -28, 11, 3);
-    // solid pyramid mast raked aft
-    poly(ctx, [[6, -28], [12, -28], [8, -40], [7, -40]]);
-    rect(ctx, 3, -35, 10, 1.4);
-    // twin raked funnels
-    poly(ctx, [[-12, -20], [-5, -20], [-3, -10], [-10, -10]]);
-    poly(ctx, [[-24, -18], [-17, -18], [-15, -10], [-22, -10]]);
-    // aft deckhouse + aft VLS + helo deck
-    rect(ctx, -38, -15, 12, 5);
-    for (let i = 0; i < 3; i++) rect(ctx, -37 + i * 4, -17, 3, 2);
-    rect(ctx, -48, -11, 9, 1.5);
+    // flush-deck hull with long raked bow
+    poly(ctx, [[-55, -10], [44, -10], [68, -3], [63, 7], [-49, 7], [-53, 0]]);
+    // enclosed stealth gun turret
+    poly(ctx, [[40, -10], [52, -10], [49, -16], [43, -16]]);
+    barrel(ctx, 48, -13, 18, -0.06, 2);
+    // wide fore VLS hatch field
+    for (let i = 0; i < 5; i++) rect(ctx, 18 + i * 4, -12, 3, 2);
+    // main superstructure: single sloped slab
+    poly(ctx, [[-10, -10], [16, -10], [12, -24], [-6, -24]]);
+    // integrated pyramid mast tower with flat radar faces
+    poly(ctx, [[-3, -24], [9, -24], [6, -37], [2, -37]]);
+    rect(ctx, 0, -32, 7, 1.4);
+    rect(ctx, 3.4, -42, 1.4, 5);
+    // sloped integrated funnel block
+    poly(ctx, [[-24, -10], [-12, -10], [-14, -19], [-22, -19]]);
+    // aft VLS field on deck
+    for (let i = 0; i < 3; i++) rect(ctx, -33 + i * 4, -12, 3, 2);
+    // hangar block + helideck lip
+    poly(ctx, [[-48, -10], [-36, -10], [-37, -17], [-47, -17]]);
+    rect(ctx, -53, -11, 6, 1.5);
   },
   // Ticonderoga-class cruiser (CG-47): long boxy superstructure, twin lattice masts, two funnels, guns + VLS fore and aft
   aegis(ctx) {
