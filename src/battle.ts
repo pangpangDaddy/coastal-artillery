@@ -6,12 +6,14 @@ import {
   spawnTurret, spawnUnit, updateEnemyAI, updateProjectiles, updateTurrets, updateUnits,
 } from './entities';
 import { EraDef, EraId, Projectile, StageDef, Turret, Unit } from './types';
-import { getNation, NationDef } from './nations';
+import { getNation, NATIONS, NationDef } from './nations';
+import { addXp, lvlMult } from './armory';
 
 export class Battle {
   stage: StageDef;
   era: EraDef;
   nation: NationDef = getNation();
+  enemyNation: NationDef;
   units: Unit[] = [];
   turrets: Turret[] = [];
   projectiles: Projectile[] = [];
@@ -35,6 +37,7 @@ export class Battle {
   messageTimer = 0;
   upDamage = 0;
   upReload = 0;
+  xpGained = 0;
 
   static UPGRADE_COSTS = [250, 500, 900];
   static UPGRADE_MAX = 3;
@@ -66,6 +69,8 @@ export class Battle {
   constructor(stageId: string) {
     this.stage = stageById(stageId);
     this.era = eraById(this.stage.era as EraId);
+    const foes = NATIONS.filter(n => n.id !== this.nation.id);
+    this.enemyNation = foes[Math.floor(Math.random() * foes.length)];
     this.resource = 150;
     this.playerBaseHp = this.stage.playerBaseHp;
     this.playerBaseMax = this.stage.playerBaseHp;
@@ -83,7 +88,7 @@ export class Battle {
     if (this.resource < cost || this.result) return false;
     this.resource -= cost;
     const u = spawnUnit(this, defId, 'player');
-    u.maxHp = Math.round(def.hp * this.nation.hp);
+    u.maxHp = Math.round(def.hp * this.nation.hp * lvlMult(defId));
     u.hp = u.maxHp;
     this.sound.click();
     return true;
@@ -97,7 +102,7 @@ export class Battle {
     if (this.turrets.some(t => t.side === 'player' && t.slot === slot)) return false;
     this.resource -= cost;
     const tr = spawnTurret(this, defId, 'player', slot);
-    tr.maxHp = Math.round(def.hp * this.nation.hp);
+    tr.maxHp = Math.round(def.hp * this.nation.hp * lvlMult(defId));
     tr.hp = tr.maxHp;
     this.sound.click();
     return true;
@@ -144,10 +149,14 @@ export class Battle {
     if (this.enemyBaseHp <= 0) {
       this.enemyBaseHp = 0;
       this.result = 'win';
+      this.xpGained = this.score;
+      addXp(this.xpGained);
       this.sound.win();
     } else if (this.playerBaseHp <= 0) {
       this.playerBaseHp = 0;
       this.result = 'lose';
+      this.xpGained = Math.floor(this.score / 2);
+      addXp(this.xpGained);
       this.sound.lose();
     }
   }

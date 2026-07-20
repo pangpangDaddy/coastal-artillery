@@ -1,4 +1,5 @@
 import type { Battle } from './battle';
+import { lvlMult } from './armory';
 import { UNITS, WEAPONS, TURRETS } from './data';
 import {
   ENEMY_COAST_X, Layer, PLAYER_COAST_X, Projectile, SEA_Y, Side, SUB_Y,
@@ -19,9 +20,10 @@ export function spawnUnit(b: Battle, defId: string, side: Side): Unit {
   const dir = side === 'player' ? 1 : -1;
   const x = side === 'player' ? PLAYER_COAST_X - 20 : ENEMY_COAST_X + 20;
   const y = def.layer === 'sea' ? SEA_Y : def.layer === 'sub' ? SUB_Y : (def.altitude ?? 150);
+  const hp = side === 'enemy' ? Math.round(def.hp * b.enemyNation.hp) : def.hp;
   const u: Unit = {
     uid: nextUid++, def, side, x, y,
-    hp: def.hp, maxHp: def.hp,
+    hp, maxHp: hp,
     reloads: def.weapons.map(w => WEAPONS[w].reload * (0.5 + Math.random() * 0.5)),
     carrierTimer: def.carrier ? def.carrier.interval * 0.5 : 0,
     launched: [], dead: false, flash: 0, vx: def.speed * dir,
@@ -33,9 +35,10 @@ export function spawnUnit(b: Battle, defId: string, side: Side): Unit {
 export function spawnTurret(b: Battle, defId: string, side: Side, slot: number): Turret {
   const def = TURRETS[defId];
   const [x, y] = turretSlotPos(side, slot);
+  const hp = side === 'enemy' ? Math.round(def.hp * b.enemyNation.hp) : def.hp;
   const t: Turret = {
     uid: nextUid++, def, side, slot, x, y,
-    hp: def.hp, maxHp: def.hp,
+    hp, maxHp: hp,
     reloads: def.weapons.map(() => 0), aimAngle: 0, dead: false, flash: 0,
   };
   b.turrets.push(t);
@@ -95,7 +98,7 @@ function findTargetByUid(b: Battle, uid: number, side: Side): TargetInfo | null 
   return null;
 }
 
-function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, target: TargetInfo) {
+function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, target: TargetInfo, dmgBonus = 1) {
   const dir = side === 'player' ? 1 : -1;
   const tof = Math.abs(target.x - ox) / weapon.projSpeed || 0.3;
   const aimX = target.x + target.vx * tof * 0.8;
@@ -103,7 +106,7 @@ function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, 
   const p: Projectile = {
     kind: weapon.kind, side, x: ox, y: oy,
     vx: 0, vy: 0,
-    damage: weapon.damage * (side === 'player' ? b.dmgMult() : 1), splash: weapon.splash ?? 0,
+    damage: weapon.damage * (side === 'player' ? b.dmgMult() * dmgBonus : b.enemyNation.dmg), splash: weapon.splash ?? 0,
     targets: weapon.targets, targetUid: target.uid,
     life: 6, vsBaseMult: weapon.vsBaseMult ?? 1, dead: false,
   };
@@ -126,7 +129,11 @@ function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, 
       break;
     }
     case 'bullet': {
-      const dx = aimX - ox, dy = aimY - oy;
+      // two-step intercept lead against constant-velocity targets (aircraft)
+      const rx = target.x - ox, ry = target.y - oy;
+      let lead = Math.hypot(rx, ry) / weapon.projSpeed;
+      lead = Math.hypot(rx + target.vx * lead, ry) / weapon.projSpeed;
+      const dx = target.x + target.vx * lead - ox, dy = aimY - oy;
       const d = Math.max(1, Math.hypot(dx, dy));
       p.vx = (dx / d) * weapon.projSpeed;
       p.vy = (dy / d) * weapon.projSpeed;
@@ -244,10 +251,18 @@ export function updateProjectiles(b: Battle, dt: number) {
         break;
       }
       case 'bullet': {
+        const px0 = p.x, py0 = p.y;
         p.x += p.vx * dt;
         p.y += p.vy * dt;
-        if (target && Math.hypot(target.x - p.x, target.y - p.y) < 16) {
-          applyDamage(b, p, p.x, p.y); p.dead = true;
+        if (target) {
+          // swept collision: closest approach along this frame's travel segment
+          const sx = p.x - px0, sy = p.y - py0;
+          const len2 = sx * sx + sy * sy || 1;
+          const tt = Math.max(0, Math.min(1, ((target.x - px0) * sx + (target.y - py0) * sy) / len2));
+          const cx = px0 + sx * tt, cy = py0 + sy * tt;
+          if (Math.hypot(target.x - cx, target.y - cy) < 18) {
+            applyDamage(b, p, cx, cy); p.dead = true;
+          }
         }
         break;
       }
@@ -333,8 +348,8 @@ function unitWeaponFire(b: Battle, u: Unit, dt: number) {
     // bombs need to be roughly above target
     if (w.kind === 'bomb' && Math.abs(target.x - u.x) > w.range) { u.reloads[i] = 0.15; continue; }
     const volley = w.volley ?? 1;
-    for (let v = 0; v < volley; v++) fire(b, u.side, u.x, oy - i * 4, w, target);
-    u.reloads[i] = w.reload * (u.side === 'player' ? b.reloadMult() : 1);
+    for (let v = 0; v < volley; v++) fire(b, u.side, u.x, oy - i * 4, w, target, u.side === 'player' ? lvlMult(u.def.id) : 1);
+    u.reloads[i] = w.reload * (u.side === 'player' ? b.reloadMult() : b.enemyNation.reload);
   }
 }
 
@@ -403,8 +418,8 @@ export function updateTurrets(b: Battle, dt: number) {
       }
       if (t.reloads[i] > 0) continue;
       if (!target) { t.reloads[i] = 0.3; continue; }
-      fire(b, t.side, t.x, t.y - 18, w, target);
-      t.reloads[i] = w.reload * (t.side === 'player' ? b.reloadMult() : 1);
+      fire(b, t.side, t.x, t.y - 18, w, target, t.side === 'player' ? lvlMult(t.def.id) : 1);
+      t.reloads[i] = w.reload * (t.side === 'player' ? b.reloadMult() : b.enemyNation.reload);
     }
   }
   b.turrets = b.turrets.filter(t => !t.dead);

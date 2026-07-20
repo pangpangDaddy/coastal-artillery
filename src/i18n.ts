@@ -47,6 +47,16 @@ const UI: Record<string, [string, string]> = {
   upMax: ['MAX', '满级'],
   upTitle: ['UPGRADES', '武器升级'],
   nationLabel: ['SELECT NATION — arsenal & bonuses', '选择国家 — 决定武器库与加成'],
+  armoryBtn: ['ARMORY', '装备库'],
+  armoryTitle: ['ARMORY — buy & upgrade equipment with XP', '装备库 — 用经验购买与升级装备'],
+  xpLabel: ['XP', '经验'],
+  buyLabel: ['UNLOCK', '解锁'],
+  upgradeLabel: ['UPGRADE', '升级'],
+  maxLabel: ['MAX', '满级'],
+  backLabel: ['← BACK', '← 返回'],
+  xpEarned: ['XP earned', '获得经验'],
+  lockedEquip: ['LOCKED — unlock in Armory', '未解锁 — 前往装备库购买'],
+  vsLabel: ['vs', '对阵'],
 };
 
 export function t(key: keyof typeof UI): string {

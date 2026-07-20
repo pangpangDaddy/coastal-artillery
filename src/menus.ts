@@ -1,6 +1,7 @@
-import { ERAS, STAGES } from './data';
+import { ERAS, STAGES, TURRETS, UNITS } from './data';
 import { lang, nameOf, t, toggleLang } from './i18n';
 import { getNation, NATIONS, setNation } from './nations';
+import { buyEquip, buyPrice, getXp, isOwned, levelOf, LEVEL_MAX, upgradeEquip, upgradePrice } from './armory';
 import { drawUnitSilhouette } from './silhouettes';
 import { VIEW_H, VIEW_W } from './types';
 
@@ -32,10 +33,12 @@ export interface MenuResult {
 }
 
 export class Menu {
-  screen: 'title' | 'stages' = 'title';
+  screen: 'title' | 'stages' | 'armory' = 'title';
   unlocked: number;
   private cards: { id: string; x: number; y: number; w: number; h: number; locked: boolean }[] = [];
   private nationBtns: { id: import('./nations').NationId; x: number; y: number; w: number; h: number }[] = [];
+  private armoryBtn = { x: 16, y: 16, w: 150, h: 32 };
+  private armoryRows: { id: string; action: 'buy' | 'upgrade'; x: number; y: number; w: number; h: number }[] = [];
 
   constructor(unlockAll = false) {
     void unlockAll;
@@ -50,6 +53,23 @@ export class Menu {
     }
     if (this.screen === 'title') {
       this.screen = 'stages';
+      return null;
+    }
+    if (this.screen === 'armory') {
+      if (cx >= this.armoryBtn.x && cx <= this.armoryBtn.x + this.armoryBtn.w && cy >= this.armoryBtn.y && cy <= this.armoryBtn.y + this.armoryBtn.h) {
+        this.screen = 'stages';
+        return null;
+      }
+      for (const r of this.armoryRows) {
+        if (cx >= r.x && cx <= r.x + r.w && cy >= r.y && cy <= r.y + r.h) {
+          if (r.action === 'buy') buyEquip(r.id); else upgradeEquip(r.id);
+          return null;
+        }
+      }
+      return null;
+    }
+    if (cx >= this.armoryBtn.x && cx <= this.armoryBtn.x + this.armoryBtn.w && cy >= this.armoryBtn.y && cy <= this.armoryBtn.y + this.armoryBtn.h) {
+      this.screen = 'armory';
       return null;
     }
     for (const nb of this.nationBtns) {
@@ -106,10 +126,23 @@ export class Menu {
       return;
     }
 
+    if (this.screen === 'armory') {
+      this.renderArmory(ctx);
+      return;
+    }
+
     // stage select
     ctx.fillStyle = '#e8e6e0';
     ctx.font = 'bold 30px monospace';
     ctx.fillText(t('selectCampaign'), VIEW_W / 2, 80);
+    // armory button
+    ctx.fillStyle = '#26221a';
+    ctx.fillRect(this.armoryBtn.x, this.armoryBtn.y, this.armoryBtn.w, this.armoryBtn.h);
+    ctx.strokeStyle = '#8a713a';
+    ctx.strokeRect(this.armoryBtn.x, this.armoryBtn.y, this.armoryBtn.w, this.armoryBtn.h);
+    ctx.fillStyle = '#e8c95c';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(`${t('armoryBtn')} · ${getXp()} XP`, this.armoryBtn.x + this.armoryBtn.w / 2, this.armoryBtn.y + 21);
     this.cards = [];
     const colW = 340;
     const gap = 30;
@@ -195,5 +228,103 @@ export class Menu {
     ctx.fillStyle = '#5a5f68';
     ctx.font = '13px monospace';
     ctx.fillText(t('controlsMenu'), VIEW_W / 2, VIEW_H - 40);
+  }
+
+  private renderArmory(ctx: CanvasRenderingContext2D) {
+    this.armoryRows = [];
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e8e6e0';
+    ctx.font = 'bold 26px monospace';
+    ctx.fillText(t('armoryTitle'), VIEW_W / 2, 78);
+    ctx.fillStyle = '#e8c95c';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText(`${t('xpLabel')}: ${getXp()}`, VIEW_W / 2, 106);
+    // back button
+    ctx.fillStyle = '#1c2027';
+    ctx.fillRect(this.armoryBtn.x, this.armoryBtn.y, this.armoryBtn.w, this.armoryBtn.h);
+    ctx.strokeStyle = '#4a5260';
+    ctx.strokeRect(this.armoryBtn.x, this.armoryBtn.y, this.armoryBtn.w, this.armoryBtn.h);
+    ctx.fillStyle = '#c9ccd2';
+    ctx.font = '13px monospace';
+    ctx.fillText(t('backLabel'), this.armoryBtn.x + this.armoryBtn.w / 2, this.armoryBtn.y + 21);
+
+    const colW = 340;
+    const gap = 30;
+    const startX = (VIEW_W - colW * 3 - gap * 2) / 2;
+    const rowH = 40;
+    ERAS.forEach((era, ei) => {
+      const cx = startX + ei * (colW + gap);
+      const th = ERA_THEME[era.id];
+      const ids = [
+        ...Object.values(UNITS).filter(u => u.era === era.id && !u.boss).map(u => u.id),
+        ...Object.values(TURRETS).filter(tr => tr.era === era.id).map(tr => tr.id),
+      ];
+      const panelH = 40 + ids.length * rowH;
+      ctx.fillStyle = th.panel;
+      ctx.fillRect(cx - 10, 128, colW + 20, panelH);
+      ctx.strokeStyle = th.dim;
+      ctx.strokeRect(cx - 10, 128, colW + 20, panelH);
+      ctx.fillStyle = th.accent;
+      ctx.fillRect(cx - 10, 128, colW + 20, 3);
+      ctx.font = 'bold 15px monospace';
+      ctx.fillStyle = th.accent;
+      ctx.fillText(lang === 'zh' ? nameOf(era.id, era.name) : era.name.toUpperCase(), cx + colW / 2, 152);
+      ids.forEach((id, ri) => {
+        const def = UNITS[id] ?? TURRETS[id];
+        const y = 166 + ri * rowH;
+        const owned = isOwned(id);
+        const lvl = levelOf(id);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = owned ? '#c9ccd2' : '#6a6f78';
+        ctx.font = '12px monospace';
+        const nm = nameOf(id, def.name);
+        ctx.fillText(nm.length > 16 ? nm.slice(0, 16) : nm, cx + 6, y + 16);
+        // level pips
+        for (let i = 0; i < LEVEL_MAX; i++) {
+          ctx.fillStyle = i < lvl ? '#e8c95c' : '#33373f';
+          ctx.fillRect(cx + 6 + i * 12, y + 22, 9, 4);
+        }
+        // action button
+        const bw = 118, bh = 26, bx = cx + colW - bw - 6, by = y + 4;
+        const xp = getXp();
+        if (!owned) {
+          const price = buyPrice(id)!;
+          const can = xp >= price;
+          ctx.fillStyle = can ? '#26221a' : '#16171b';
+          ctx.fillRect(bx, by, bw, bh);
+          ctx.strokeStyle = can ? '#8a713a' : '#33373f';
+          ctx.strokeRect(bx, by, bw, bh);
+          ctx.fillStyle = can ? '#e8c95c' : '#555';
+          ctx.textAlign = 'center';
+          ctx.font = '11px monospace';
+          ctx.fillText(`${t('buyLabel')} ${price}`, bx + bw / 2, by + 17);
+          if (can) this.armoryRows.push({ id, action: 'buy', x: bx, y: by, w: bw, h: bh });
+        } else {
+          const price = upgradePrice(id);
+          if (price === null) {
+            ctx.fillStyle = '#20261e';
+            ctx.fillRect(bx, by, bw, bh);
+            ctx.strokeStyle = '#5a7a4a';
+            ctx.strokeRect(bx, by, bw, bh);
+            ctx.fillStyle = '#7ea86a';
+            ctx.textAlign = 'center';
+            ctx.font = '11px monospace';
+            ctx.fillText(t('maxLabel'), bx + bw / 2, by + 17);
+          } else {
+            const can = xp >= price;
+            ctx.fillStyle = can ? '#1e2126' : '#16171b';
+            ctx.fillRect(bx, by, bw, bh);
+            ctx.strokeStyle = can ? '#666' : '#33373f';
+            ctx.strokeRect(bx, by, bw, bh);
+            ctx.fillStyle = can ? '#c9ccd2' : '#555';
+            ctx.textAlign = 'center';
+            ctx.font = '11px monospace';
+            ctx.fillText(`${t('upgradeLabel')} ${price}`, bx + bw / 2, by + 17);
+            if (can) this.armoryRows.push({ id, action: 'upgrade', x: bx, y: by, w: bw, h: bh });
+          }
+        }
+        ctx.textAlign = 'center';
+      });
+    });
   }
 }

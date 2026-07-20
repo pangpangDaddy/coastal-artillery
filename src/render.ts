@@ -174,7 +174,7 @@ function drawCoastFoam(ctx: CanvasRenderingContext2D, cam: Camera, time: number)
   }
 }
 
-function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam: Camera, hitFlash: number, time: number) {
+function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam: Camera, hitFlash: number, time: number, flagColor: string) {
   const isPlayer = side === 'player';
   const baseX = isPlayer ? 0 : WORLD_W;
   const dir = isPlayer ? 1 : -1;
@@ -267,7 +267,7 @@ function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam:
   ctx.fillRect(sx(fortX) - 1.5, SEA_Y - 244, 3, 36);
   const wave = Math.sin(time * 5) * 4;
   const tip = isPlayer ? 30 : -30;
-  ctx.fillStyle = isPlayer ? PLAYER_COLOR : ENEMY_COLOR;
+  ctx.fillStyle = flagColor;
   ctx.beginPath();
   ctx.moveTo(sx(fortX) + 1.5, SEA_Y - 244);
   ctx.quadraticCurveTo(sx(fortX) + tip * 0.6, SEA_Y - 240 + wave, sx(fortX) + tip, SEA_Y - 235 + wave);
@@ -319,8 +319,8 @@ export function renderBattle(ctx: CanvasRenderingContext2D, b: Battle, cam: Came
   drawHorizon(ctx, cam);
   drawSea(ctx, cam, b.time);
   drawCoastFoam(ctx, cam, b.time);
-  drawCliff(ctx, 'player', cam, b.baseHitPlayer, b.time);
-  drawCliff(ctx, 'enemy', cam, b.baseHitEnemy, b.time);
+  drawCliff(ctx, 'player', cam, b.baseHitPlayer, b.time, b.nation.color);
+  drawCliff(ctx, 'enemy', cam, b.baseHitEnemy, b.time, b.enemyNation.color);
   drawTurretSlots(ctx, b, cam);
 
   // sub layer hint (water darken below sub depth)

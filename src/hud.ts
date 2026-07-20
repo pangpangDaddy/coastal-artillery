@@ -5,7 +5,8 @@ import { drawTurretIcon, drawUnitSilhouette } from './silhouettes';
 import { turretSlotPos } from './entities';
 import { HUD_H, RADAR_H, RADAR_W, RADAR_X, RADAR_Y, VIEW_H, VIEW_W, WORLD_W } from './types';
 import { inRadar } from './core';
-import { nameOf, shortName, t } from './i18n';
+import { nameOf, shortName, t, lang } from './i18n';
+import { isOwned, levelOf } from './armory';
 
 const BTN = 64;
 const BTN_GAP = 8;
@@ -55,6 +56,7 @@ export class Hud {
     for (const btn of this.buttons) {
       if (cx >= btn.x && cx <= btn.x + BTN && cy >= btn.y && cy <= btn.y + BTN) {
         if (btn.kind === 'unit') {
+          if (!isOwned(btn.id)) { b.message = t('lockedEquip'); b.messageTimer = 2; return; }
           b.buyUnit(btn.id);
           this.state.selectedTurret = null;
         } else if (btn.kind === 'upgrade') {
@@ -86,8 +88,8 @@ export class Hud {
     // top base HP bars
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(0, 0, VIEW_W, 30);
-    bar(ctx, 20, 10, 320, 10, b.playerBaseHp / b.playerBaseMax, '#3f8a3f', t('base'));
-    bar(ctx, VIEW_W - 340, 10, 320, 10, b.enemyBaseHp / b.enemyBaseMax, '#c22a2a', t('enemy'));
+    bar(ctx, 20, 10, 320, 10, b.playerBaseHp / b.playerBaseMax, '#3f8a3f', `${t('base')} · ${b.nation.name[lang === 'zh' ? 1 : 0]}`);
+    bar(ctx, VIEW_W - 340, 10, 320, 10, b.enemyBaseHp / b.enemyBaseMax, '#c22a2a', `${t('enemy')} · ${b.enemyNation.name[lang === 'zh' ? 1 : 0]}`);
     ctx.fillStyle = '#ddd';
     ctx.font = 'bold 13px monospace';
     ctx.textAlign = 'center';
@@ -157,27 +159,52 @@ export class Hud {
         continue;
       }
       const def = btn.kind === 'unit' ? UNITS[btn.id] : TURRETS[btn.id];
+      const locked = btn.kind === 'unit' && !isOwned(btn.id);
       const price = b.costOf(def);
-      const affordable = b.resource >= price;
+      const affordable = !locked && b.resource >= price;
       const selected = btn.kind === 'turret' && this.state.selectedTurret === btn.id;
-      ctx.fillStyle = selected ? '#3d4a63' : affordable ? '#1e2126' : '#141518';
+      ctx.fillStyle = selected ? '#3d4a63' : locked ? '#101014' : affordable ? '#1e2126' : '#141518';
       ctx.fillRect(btn.x, btn.y, BTN, BTN);
-      ctx.strokeStyle = selected ? '#8ab4ff' : affordable ? '#666' : '#333';
+      ctx.strokeStyle = selected ? '#8ab4ff' : locked ? '#2a2a30' : affordable ? '#666' : '#333';
       ctx.lineWidth = selected ? 2 : 1;
       ctx.strokeRect(btn.x, btn.y, BTN, BTN);
 
-      const color = affordable ? '#c9ccd2' : '#555';
+      const color = locked ? '#3a3a42' : affordable ? '#c9ccd2' : '#555';
       if (btn.kind === 'unit') {
         const u = UNITS[btn.id];
         drawUnitSilhouette(ctx, u.silhouette, u.layer, btn.x + BTN / 2, btn.y + BTN / 2 - 4, 0.55, 1, color);
       } else {
         drawTurretIcon(ctx, btn.id.startsWith('asm') ? 'turret_missile' : TURRETS[btn.id].silhouette, btn.x + BTN / 2, btn.y + BTN / 2 + 8, 0.8, color);
       }
-      ctx.fillStyle = affordable ? '#e8c95c' : '#555';
-      ctx.font = '10px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${price}`, btn.x + BTN / 2, btn.y + BTN - 5);
+      if (locked) {
+        // padlock
+        const lx = btn.x + BTN / 2, ly = btn.y + BTN / 2 + 2;
+        ctx.strokeStyle = '#8a8f98';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(lx, ly - 4, 5, Math.PI, 0);
+        ctx.stroke();
+        ctx.fillStyle = '#8a8f98';
+        ctx.fillRect(lx - 7, ly - 4, 14, 11);
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#8a8f98';
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(lang === 'zh' ? '未解锁' : 'LOCKED', btn.x + BTN / 2, btn.y + BTN - 5);
+      } else {
+        ctx.fillStyle = affordable ? '#e8c95c' : '#555';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${price}`, btn.x + BTN / 2, btn.y + BTN - 5);
+        // equipment level pips
+        const lvl = levelOf(btn.id);
+        for (let i = 0; i < lvl; i++) {
+          ctx.fillStyle = '#e8c95c';
+          ctx.fillRect(btn.x + 4, btn.y + BTN - 10 - i * 6, 4, 4);
+        }
+      }
       ctx.fillStyle = '#999';
+      ctx.font = '10px monospace';
       ctx.fillText(shortName(btn.id, def.name), btn.x + BTN / 2, btn.y + 11);
     }
 
@@ -203,7 +230,10 @@ export class Hud {
       ctx.fillStyle = '#ddd';
       ctx.font = '16px monospace';
       ctx.fillText(`${t('scoreLabel')}: ${b.score}    ${t('timeLabel')}: ${Math.floor(b.time)}s`, VIEW_W / 2, VIEW_H / 2 + 10);
-      ctx.fillText(b.result === 'win' ? t('nextStage') : t('retry'), VIEW_W / 2, VIEW_H / 2 + 44);
+      ctx.fillStyle = '#e8c95c';
+      ctx.fillText(`${t('xpEarned')}: +${b.xpGained} XP`, VIEW_W / 2, VIEW_H / 2 + 38);
+      ctx.fillStyle = '#ddd';
+      ctx.fillText(b.result === 'win' ? t('nextStage') : t('retry'), VIEW_W / 2, VIEW_H / 2 + 70);
     }
   }
 }
