@@ -103,7 +103,7 @@ function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, 
   const p: Projectile = {
     kind: weapon.kind, side, x: ox, y: oy,
     vx: 0, vy: 0,
-    damage: weapon.damage, splash: weapon.splash ?? 0,
+    damage: weapon.damage * (side === 'player' ? b.dmgMult() : 1), splash: weapon.splash ?? 0,
     targets: weapon.targets, targetUid: target.uid,
     life: 6, vsBaseMult: weapon.vsBaseMult ?? 1, dead: false,
   };
@@ -327,7 +327,7 @@ function unitWeaponFire(b: Battle, u: Unit, dt: number) {
     if (w.kind === 'bomb' && Math.abs(target.x - u.x) > w.range) { u.reloads[i] = 0.15; continue; }
     const volley = w.volley ?? 1;
     for (let v = 0; v < volley; v++) fire(b, u.side, u.x, oy - i * 4, w, target);
-    u.reloads[i] = w.reload;
+    u.reloads[i] = w.reload * (u.side === 'player' ? b.reloadMult() : 1);
   }
 }
 
@@ -397,7 +397,7 @@ export function updateTurrets(b: Battle, dt: number) {
       if (t.reloads[i] > 0) continue;
       if (!target) { t.reloads[i] = 0.3; continue; }
       fire(b, t.side, t.x, t.y - 18, w, target);
-      t.reloads[i] = w.reload;
+      t.reloads[i] = w.reload * (t.side === 'player' ? b.reloadMult() : 1);
     }
   }
   b.turrets = b.turrets.filter(t => !t.dead);

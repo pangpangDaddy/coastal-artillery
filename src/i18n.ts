@@ -40,6 +40,10 @@ const UI: Record<string, [string, string]> = {
   msgStart: ['Destroy the enemy base — defend your coast!', '摧毁敌方基地 — 守住我方海岸！'],
   msgWave: ['Enemy wave incoming!', '敌方波次来袭！'],
   msgBoss: ['WARNING: Enemy flagship approaching!', '警告：敌方旗舰逼近！'],
+  upDmg: ['DMG', '火力'],
+  upRof: ['ROF', '装填'],
+  upMax: ['MAX', '满级'],
+  upTitle: ['UPGRADES', '武器升级'],
 };
 
 export function t(key: keyof typeof UI): string {

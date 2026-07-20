@@ -31,6 +31,33 @@ export class Battle {
   baseHitEnemy = 0;
   message = '';
   messageTimer = 0;
+  upDamage = 0;
+  upReload = 0;
+
+  static UPGRADE_COSTS = [250, 500, 900];
+  static UPGRADE_MAX = 3;
+
+  upgradeLevel(track: 'damage' | 'reload'): number {
+    return track === 'damage' ? this.upDamage : this.upReload;
+  }
+
+  upgradeCost(track: 'damage' | 'reload'): number | null {
+    const lvl = this.upgradeLevel(track);
+    return lvl >= Battle.UPGRADE_MAX ? null : Battle.UPGRADE_COSTS[lvl];
+  }
+
+  buyUpgrade(track: 'damage' | 'reload'): boolean {
+    const cost = this.upgradeCost(track);
+    if (cost === null || this.resource < cost || this.result) return false;
+    this.resource -= cost;
+    if (track === 'damage') this.upDamage++; else this.upReload++;
+    this.sound.click();
+    return true;
+  }
+
+  dmgMult(): number { return 1 + this.upDamage * 0.15; }
+
+  reloadMult(): number { return 1 - this.upReload * 0.1; }
 
   constructor(stageId: string) {
     this.stage = stageById(stageId);

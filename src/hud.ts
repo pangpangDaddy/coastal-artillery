@@ -15,7 +15,7 @@ export interface HudState {
 }
 
 interface Button {
-  kind: 'unit' | 'turret';
+  kind: 'unit' | 'turret' | 'upgrade';
   id: string;
   x: number;
   y: number;
@@ -38,6 +38,9 @@ export class Hud {
       btns.push({ kind: 'turret', id, x, y });
       x += BTN + BTN_GAP;
     }
+    const ux = RADAR_X - 2 * (BTN + BTN_GAP) - 16;
+    btns.push({ kind: 'upgrade', id: 'damage', x: ux, y });
+    btns.push({ kind: 'upgrade', id: 'reload', x: ux + BTN + BTN_GAP, y });
     return btns;
   }
 
@@ -53,6 +56,9 @@ export class Hud {
       if (cx >= btn.x && cx <= btn.x + BTN && cy >= btn.y && cy <= btn.y + BTN) {
         if (btn.kind === 'unit') {
           b.buyUnit(btn.id);
+          this.state.selectedTurret = null;
+        } else if (btn.kind === 'upgrade') {
+          b.buyUpgrade(btn.id as 'damage' | 'reload');
           this.state.selectedTurret = null;
         } else {
           this.state.selectedTurret = this.state.selectedTurret === btn.id ? null : btn.id;
@@ -116,6 +122,40 @@ export class Hud {
 
     // buttons
     for (const btn of this.buttons) {
+      if (btn.kind === 'upgrade') {
+        const track = btn.id as 'damage' | 'reload';
+        const lvl = b.upgradeLevel(track);
+        const cost = b.upgradeCost(track);
+        const affordable = cost !== null && b.resource >= cost;
+        ctx.fillStyle = cost === null ? '#20261e' : affordable ? '#1e2126' : '#141518';
+        ctx.fillRect(btn.x, btn.y, BTN, BTN);
+        ctx.strokeStyle = cost === null ? '#5a7a4a' : affordable ? '#666' : '#333';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(btn.x, btn.y, BTN, BTN);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#999';
+        ctx.font = '10px monospace';
+        ctx.fillText(track === 'damage' ? t('upDmg') : t('upRof'), btn.x + BTN / 2, btn.y + 11);
+        // up-arrow icon
+        const iconColor = cost === null ? '#7ea86a' : affordable ? '#c9ccd2' : '#555';
+        ctx.fillStyle = iconColor;
+        ctx.beginPath();
+        ctx.moveTo(btn.x + BTN / 2, btn.y + 18);
+        ctx.lineTo(btn.x + BTN / 2 - 9, btn.y + 30);
+        ctx.lineTo(btn.x + BTN / 2 + 9, btn.y + 30);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillRect(btn.x + BTN / 2 - 3, btn.y + 30, 6, 8);
+        // level pips
+        for (let i = 0; i < 3; i++) {
+          ctx.fillStyle = i < lvl ? '#e8c95c' : '#333';
+          ctx.fillRect(btn.x + 14 + i * 14, btn.y + 43, 10, 5);
+        }
+        ctx.fillStyle = cost === null ? '#7ea86a' : affordable ? '#e8c95c' : '#555';
+        ctx.font = '10px monospace';
+        ctx.fillText(cost === null ? t('upMax') : `${cost}`, btn.x + BTN / 2, btn.y + BTN - 5);
+        continue;
+      }
       const def = btn.kind === 'unit' ? UNITS[btn.id] : TURRETS[btn.id];
       const affordable = b.resource >= def.cost;
       const selected = btn.kind === 'turret' && this.state.selectedTurret === btn.id;
