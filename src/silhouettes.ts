@@ -26,176 +26,224 @@ function ellipse(ctx: Ctx, x: number, y: number, rx: number, ry: number) {
   ctx.fill();
 }
 
-// All ships drawn facing +x, waterline at y=0, length ~ 100 * size
+// All ships drawn facing +x, waterline at y=0, length ~ 100 * size.
+// Each silhouette is modeled on a real warship profile.
 const SHIPS: Record<string, (ctx: Ctx) => void> = {
+  // HMS Insect-class gunboat (1915): low flat hull, tall thin funnel, boxy wheelhouse, single bow gun
   gunboat(ctx) {
-    // hull with raked bow
-    poly(ctx, [[-40, -8], [40, -8], [52, -4], [50, -2], [46, 6], [-34, 6], [-38, -2]]);
-    // bulwark step at bow
-    rect(ctx, 30, -11, 16, 3);
-    // bridge + wheelhouse
-    rect(ctx, -12, -18, 20, 10);
-    rect(ctx, -8, -24, 12, 6);
-    // funnel (raked) + mast
-    poly(ctx, [[2, -26], [7, -26], [9, -18], [4, -18]]);
-    rect(ctx, -18, -30, 1.5, 14);
-    // bow gun on mount
-    rect(ctx, 16, -12, 8, 4);
-    barrel(ctx, 20, -12, 20, -0.12);
+    poly(ctx, [[-40, -7], [42, -7], [52, -3], [50, -1], [46, 6], [-36, 6], [-40, 0]]);
+    // awning deck aft
+    rect(ctx, -34, -10, 26, 3);
+    rect(ctx, -32, -13, 1.2, 3); rect(ctx, -24, -13, 1.2, 3); rect(ctx, -16, -13, 1.2, 3);
+    // wheelhouse forward of funnel
+    rect(ctx, -2, -16, 14, 9);
+    rect(ctx, 0, -21, 9, 5);
+    // tall thin upright funnel
+    rect(ctx, -10, -30, 5, 23);
+    rect(ctx, -11, -31, 7, 2);
+    // pole mast fore
+    rect(ctx, 16, -30, 1.3, 23);
+    // 6-inch bow gun on open pedestal mount
+    rect(ctx, 24, -11, 7, 4);
+    barrel(ctx, 28, -11, 19, -0.1, 2.2);
     // depth charge rack at stern
-    rect(ctx, -34, -10, 10, 3);
-    ellipse(ctx, -31, -12, 2, 2);
-    ellipse(ctx, -26, -12, 2, 2);
+    ellipse(ctx, -37, -9, 2, 2);
+    ellipse(ctx, -32, -9, 2, 2);
   },
+  // SMS Emden (1908) light cruiser: ram-curved bow, three slim funnels, low open gun mounts, two pole masts
   cruiser(ctx) {
-    // hull, raked bow with anchor notch
-    poly(ctx, [[-50, -10], [48, -10], [62, -5], [60, -3], [54, 7], [-42, 7], [-48, -2]]);
-    rect(ctx, 40, -13, 18, 3);
-    // fore/aft gun turrets with barrels
-    poly(ctx, [[-24, -10], [-6, -10], [-8, -18], [-22, -18]]);
-    poly(ctx, [[6, -10], [24, -10], [22, -18], [8, -18]]);
-    barrel(ctx, 20, -15, 26, -0.1);
-    barrel(ctx, -20, -15, 24, Math.PI + 0.1);
-    // bridge block between turrets
-    rect(ctx, -4, -22, 10, 12);
-    // two raked funnels
-    poly(ctx, [[-14, -30], [-9, -30], [-7, -18], [-12, -18]]);
-    poly(ctx, [[-2, -30], [3, -30], [5, -18], [0, -18]]);
-    // tripod mast
-    rect(ctx, 10, -36, 1.5, 20);
-    poly(ctx, [[10, -16], [6, -16], [10, -32]]);
-    rect(ctx, 8, -34, 6, 2);
+    poly(ctx, [[-50, -10], [50, -10], [62, -6], [58, 0], [54, 7], [-44, 7], [-48, 0]]);
+    // forecastle step
+    rect(ctx, 18, -13, 40, 3);
+    // three slim, slightly raked funnels amidships
+    poly(ctx, [[-16, -30], [-12, -30], [-10, -13], [-14, -13]]);
+    poly(ctx, [[-6, -30], [-2, -30], [0, -13], [-4, -13]]);
+    poly(ctx, [[4, -30], [8, -30], [10, -13], [6, -13]]);
+    // bridge + chart house forward
+    rect(ctx, 14, -21, 12, 8);
+    rect(ctx, 16, -25, 7, 4);
+    // low open casemate gun mounts fore and aft (shielded)
+    poly(ctx, [[30, -13], [40, -13], [38, -19], [32, -19]]);
+    barrel(ctx, 37, -16, 20, -0.1, 2.2);
+    poly(ctx, [[-38, -10], [-28, -10], [-30, -16], [-36, -16]]);
+    barrel(ctx, -35, -13, 18, Math.PI + 0.1, 2.2);
+    // two tall pole masts with yards
+    rect(ctx, 24, -38, 1.3, 25);
+    rect(ctx, 20, -34, 9, 1.3);
+    rect(ctx, -22, -36, 1.3, 26);
+    rect(ctx, -26, -32, 9, 1.3);
   },
+  // Queen Elizabeth-class super-dreadnought (1915): superfiring turret pairs fore/aft, tripod foremast, two funnels
   dreadnought(ctx) {
-    // heavy hull, long raked bow
-    poly(ctx, [[-52, -12], [50, -12], [66, -6], [64, -4], [56, 8], [-44, 8], [-50, -2]]);
-    // casemate strake
-    rect(ctx, -38, -15, 76, 3);
-    // superfiring fore turrets
-    poly(ctx, [[16, -15], [36, -15], [34, -23], [18, -23]]);
-    poly(ctx, [[8, -23], [24, -23], [22, -30], [10, -30]]);
-    barrel(ctx, 32, -19, 30, -0.08);
-    barrel(ctx, 22, -27, 28, -0.08);
-    // aft turret
-    poly(ctx, [[-36, -15], [-18, -15], [-20, -23], [-34, -23]]);
-    barrel(ctx, -32, -19, 28, Math.PI + 0.08);
-    // bridge tower + tripod mast
-    rect(ctx, -2, -30, 10, 16);
-    rect(ctx, 0, -42, 5, 12);
-    poly(ctx, [[2, -15], [-3, -15], [2, -38]]);
-    // two funnels
-    poly(ctx, [[-14, -32], [-8, -32], [-6, -15], [-12, -15]]);
-    poly(ctx, [[-6, -30], [0, -30], [2, -15], [-4, -15]]);
+    poly(ctx, [[-54, -12], [52, -12], [66, -7], [64, -4], [56, 8], [-46, 8], [-52, 0]]);
+    // casemate secondary battery strake
+    rect(ctx, -30, -15, 60, 3);
+    // A + B superfiring fore turrets
+    poly(ctx, [[24, -15], [42, -15], [40, -22], [26, -22]]);
+    barrel(ctx, 38, -19, 28, -0.07); barrel(ctx, 38, -19, 28, -0.13);
+    poly(ctx, [[14, -22], [30, -22], [28, -29], [16, -29]]);
+    barrel(ctx, 27, -26, 26, -0.07); barrel(ctx, 27, -26, 26, -0.13);
+    // X + Y superfiring aft turrets
+    poly(ctx, [[-42, -15], [-24, -15], [-26, -22], [-40, -22]]);
+    barrel(ctx, -38, -19, 26, Math.PI + 0.07);
+    poly(ctx, [[-32, -22], [-18, -22], [-20, -28], [-30, -28]]);
+    barrel(ctx, -29, -25, 24, Math.PI + 0.07);
+    // bridge block + tripod foremast with spotting top
+    rect(ctx, 2, -30, 10, 16);
+    poly(ctx, [[8, -15], [2, -15], [7, -40]]);
+    rect(ctx, 6.2, -44, 1.6, 30);
+    rect(ctx, 3, -42, 8, 4);
+    // two upright funnels
+    rect(ctx, -6, -33, 7, 19);
+    rect(ctx, -16, -31, 7, 17);
+    // aft pole mast
+    rect(ctx, -22, -34, 1.4, 20);
   },
+  // Fletcher-class destroyer (1942): flush deck, two raked funnels, superfiring 5" mounts, torpedo tubes amidships
   destroyer(ctx) {
-    // sleek hull, sharp raked bow
-    poly(ctx, [[-48, -9], [46, -9], [60, -4], [58, -2], [52, 6], [-40, 6], [-46, -1]]);
-    rect(ctx, 38, -12, 18, 3);
-    // bridge with open top
-    rect(ctx, -2, -21, 16, 12);
-    rect(ctx, 2, -25, 9, 4);
-    // raked funnel
-    poly(ctx, [[-14, -26], [-8, -26], [-6, -9], [-12, -9]]);
-    // mast
-    rect(ctx, -20, -30, 1.5, 21);
-    rect(ctx, -23, -27, 8, 1.5);
-    // fore gun turret
-    poly(ctx, [[18, -9], [32, -9], [30, -16], [20, -16]]);
-    barrel(ctx, 28, -13, 24, -0.1);
-    // depth charge racks at stern
-    rect(ctx, -38, -12, 12, 3);
-    ellipse(ctx, -35, -14, 2, 2);
-    ellipse(ctx, -30, -14, 2, 2);
+    poly(ctx, [[-48, -9], [46, -9], [60, -5], [58, -2], [52, 6], [-42, 6], [-46, 0]]);
+    // compact bridge
+    rect(ctx, 10, -20, 13, 11);
+    rect(ctx, 13, -24, 8, 4);
+    // two raked funnels
+    poly(ctx, [[-2, -26], [4, -26], [6, -9], [0, -9]]);
+    poly(ctx, [[-16, -25], [-10, -25], [-8, -9], [-14, -9]]);
+    // quintuple torpedo tube mount between funnels
+    rect(ctx, -8, -12, 8, 3);
+    barrel(ctx, -7, -11, 9, -0.35, 1.6);
+    // superfiring 5-inch mounts fore
+    poly(ctx, [[26, -9], [36, -9], [34, -15], [28, -15]]);
+    barrel(ctx, 33, -12, 18, -0.1, 2);
+    poly(ctx, [[16, -15], [25, -15], [24, -20], [18, -20]]);
+    barrel(ctx, 23, -17.5, 16, -0.1, 2);
+    // aft 5-inch mount
+    poly(ctx, [[-36, -9], [-27, -9], [-28, -15], [-34, -15]]);
+    barrel(ctx, -33, -12, 16, Math.PI + 0.1, 2);
+    // mast behind bridge + DC racks at fantail
+    rect(ctx, 8, -32, 1.3, 12);
+    ellipse(ctx, -44, -10, 2, 2);
+    ellipse(ctx, -40, -10, 2, 2);
   },
+  // Essex-class carrier (1943): full-length flight deck, compact starboard island with integrated funnel and tripod mast
   carrier(ctx) {
-    // hull
-    poly(ctx, [[-52, -8], [52, -8], [62, -3], [56, 6], [-46, 6], [-50, -2]]);
-    // flight deck with bow/stern overhang
-    poly(ctx, [[-62, -16], [64, -16], [66, -11], [-64, -11]]);
-    // island: bridge + funnel + mast
-    rect(ctx, 16, -30, 16, 14);
-    rect(ctx, 26, -36, 6, 6);
-    rect(ctx, 18, -40, 2, 10);
-    rect(ctx, 15, -33, 12, 2);
-    // parked aircraft on deck (tiny silhouette)
-    poly(ctx, [[-30, -16], [-22, -16], [-24, -20], [-28, -20]]);
-    rect(ctx, -34, -17.5, 5, 1.5);
+    poly(ctx, [[-52, -8], [52, -8], [62, -3], [56, 6], [-48, 6], [-52, 0]]);
+    // hangar deck side
+    rect(ctx, -50, -11, 106, 3);
+    // flight deck with overhang, slight bow round-down
+    poly(ctx, [[-62, -16], [60, -16], [66, -13], [64, -11], [-64, -11]]);
+    // island: bridge levels + funnel + tripod mast
+    rect(ctx, 14, -28, 15, 12);
+    rect(ctx, 16, -32, 10, 4);
+    poly(ctx, [[24, -40], [28, -40], [29, -32], [23, -32]]);
+    rect(ctx, 18, -42, 1.5, 10);
+    poly(ctx, [[19, -32], [15, -32], [18.6, -40]]);
+    rect(ctx, 13, -30, 17, 1.5);
+    // parked aircraft forward on deck
+    poly(ctx, [[-32, -16], [-24, -16], [-26, -20], [-30, -20]]);
+    rect(ctx, -36, -17.5, 5, 1.5);
+    poly(ctx, [[-44, -16], [-37, -16], [-39, -19], [-42, -19]]);
   },
+  // USS Freedom (LCS-1): high raked stealth bow, superstructure well forward, sloped mast, low stern mission deck
   lcs(ctx) {
-    // stealth hull with wave-piercing bow
-    poly(ctx, [[-46, -8], [40, -8], [58, -1], [50, 5], [-38, 5], [-44, -2]]);
-    // angular faceted superstructure
-    poly(ctx, [[-20, -8], [16, -8], [10, -24], [-10, -24], [-16, -14]]);
-    // pyramid mast
-    poly(ctx, [[-4, -24], [4, -24], [1, -32], [-1, -32]]);
-    // enclosed gun mount fore
-    poly(ctx, [[22, -8], [34, -8], [31, -14], [25, -14]]);
-    barrel(ctx, 30, -11, 20, -0.1);
+    poly(ctx, [[-46, -6], [36, -6], [44, -10], [58, -2], [50, 5], [-40, 5], [-44, 0]]);
+    // high sheer bow bulwark
+    poly(ctx, [[36, -6], [44, -10], [56, -3], [44, -3]]);
+    // forward angular superstructure (bridge faces sloped)
+    poly(ctx, [[-4, -6], [26, -6], [20, -22], [2, -22], [-2, -14]]);
+    // sloped stealth mast
+    poly(ctx, [[6, -22], [14, -22], [10, -33], [8, -33]]);
+    rect(ctx, 4, -29, 12, 1.3);
+    // 57mm enclosed stealth gun fore of bridge
+    poly(ctx, [[28, -8], [38, -8], [35, -14], [30, -14]]);
+    barrel(ctx, 34, -11, 16, -0.1, 2);
+    // low aft mission/flight deck with hangar step
+    rect(ctx, -30, -10, 20, 4);
   },
+  // Arleigh Burke-class destroyer (DDG-51): flared bow, 5" gun, fore/aft VLS, slab SPY deckhouse, twin raked funnels
   missile_destroyer(ctx) {
-    // hull with flared bow
-    poly(ctx, [[-52, -10], [46, -10], [64, -5], [62, -3], [56, 7], [-44, 7], [-50, -2]]);
-    // fore VLS field (hatch bumps)
-    for (let i = 0; i < 4; i++) rect(ctx, 26 + i * 4, -12, 3, 2);
-    // gun mount at bow
+    poly(ctx, [[-52, -10], [44, -10], [64, -6], [62, -3], [56, 7], [-46, 7], [-50, 0]]);
+    // fore VLS hatch field
+    for (let i = 0; i < 4; i++) rect(ctx, 24 + i * 4, -12, 3, 2);
+    // 5-inch enclosed gun at bow
     poly(ctx, [[42, -10], [52, -10], [50, -15], [44, -15]]);
-    barrel(ctx, 48, -12, 18, -0.08);
-    // deckhouse with slanted SPY faces
-    poly(ctx, [[-2, -10], [24, -10], [20, -26], [2, -26]]);
-    rect(ctx, 6, -30, 10, 4);
-    // mast
-    poly(ctx, [[8, -30], [12, -30], [10, -40], [9, -40]]);
-    rect(ctx, 5, -36, 10, 1.5);
-    // twin angled funnels + aft house with VLS
-    poly(ctx, [[-16, -20], [-6, -20], [-4, -10], [-14, -10]]);
-    rect(ctx, -34, -16, 14, 6);
-    for (let i = 0; i < 3; i++) rect(ctx, -33 + i * 4.5, -18, 3, 2);
+    barrel(ctx, 48, -12.5, 17, -0.08, 2);
+    // deckhouse with sloped SPY-1 radar faces
+    poly(ctx, [[-4, -10], [22, -10], [17, -25], [1, -25]]);
+    rect(ctx, 3, -28, 11, 3);
+    // solid pyramid mast raked aft
+    poly(ctx, [[6, -28], [12, -28], [8, -40], [7, -40]]);
+    rect(ctx, 3, -35, 10, 1.4);
+    // twin raked funnels
+    poly(ctx, [[-12, -20], [-5, -20], [-3, -10], [-10, -10]]);
+    poly(ctx, [[-24, -18], [-17, -18], [-15, -10], [-22, -10]]);
+    // aft deckhouse + aft VLS + helo deck
+    rect(ctx, -38, -15, 12, 5);
+    for (let i = 0; i < 3; i++) rect(ctx, -37 + i * 4, -17, 3, 2);
+    rect(ctx, -48, -11, 9, 1.5);
   },
+  // Ticonderoga-class cruiser (CG-47): long boxy superstructure, twin lattice masts, two funnels, guns + VLS fore and aft
   aegis(ctx) {
-    // long hull
-    poly(ctx, [[-54, -11], [48, -11], [66, -5], [64, -3], [58, 7], [-46, 7], [-52, -2]]);
-    // long boxy superstructure with slab radar faces
-    poly(ctx, [[-32, -11], [26, -11], [22, -28], [-28, -28]]);
-    rect(ctx, 4, -33, 12, 5);
-    // twin lattice masts
-    rect(ctx, 12, -45, 2, 12);
-    rect(ctx, -18, -40, 2, 12);
-    rect(ctx, 8, -42, 10, 1.5);
-    rect(ctx, -22, -37, 10, 1.5);
-    // fore + aft VLS hatches
+    poly(ctx, [[-54, -11], [48, -11], [66, -7], [64, -4], [58, 7], [-48, 7], [-52, 0]]);
+    // continuous slab superstructure
+    poly(ctx, [[-34, -11], [28, -11], [24, -26], [-30, -26]]);
+    rect(ctx, 6, -30, 12, 4);
+    rect(ctx, -24, -30, 12, 4);
+    // twin lattice masts (fore raked, aft vertical)
+    rect(ctx, 14, -44, 1.8, 14);
+    rect(ctx, 10, -41, 10, 1.4);
+    rect(ctx, 12, -37, 10, 1.4);
+    rect(ctx, -18, -40, 1.8, 10);
+    rect(ctx, -22, -37, 10, 1.4);
+    // two low square funnels
+    rect(ctx, 0, -29, 5, 3);
+    rect(ctx, -12, -29, 5, 3);
+    // fore + aft VLS hatch fields
     for (let i = 0; i < 4; i++) rect(ctx, 30 + i * 4, -13, 3, 2);
-    for (let i = 0; i < 3; i++) rect(ctx, -44 + i * 4.5, -13, 3, 2);
-    // bow gun
-    poly(ctx, [[44, -11], [54, -11], [52, -16], [46, -16]]);
-    barrel(ctx, 50, -13, 18, -0.08);
+    for (let i = 0; i < 3; i++) rect(ctx, -46 + i * 4, -13, 3, 2);
+    // 5-inch guns fore and aft
+    poly(ctx, [[46, -11], [55, -11], [53, -16], [48, -16]]);
+    barrel(ctx, 52, -13.5, 16, -0.08, 2);
+    poly(ctx, [[-40, -11], [-32, -11], [-33, -15], [-39, -15]]);
+    barrel(ctx, -38, -13, 13, Math.PI + 0.08, 2);
   },
+  // Type VII U-boat: saddle-tank hull, stepped conning tower with AA platform, 88mm deck gun, net-cutter bow
   uboat(ctx) {
-    // hull with deck casing
-    ellipse(ctx, 0, -4, 42, 8);
-    rect(ctx, -34, -13, 66, 3);
-    // conning tower with stepped top + periscopes
-    poly(ctx, [[-8, -13], [10, -13], [8, -22], [-6, -22]]);
-    rect(ctx, -2, -28, 1.5, 6);
-    rect(ctx, 2, -26, 1.5, 4);
-    // deck gun fore
-    rect(ctx, 18, -15, 5, 3);
-    barrel(ctx, 21, -14, 12, -0.15, 1.8);
-    // bow + stern taper
-    poly(ctx, [[40, -8], [50, -4], [40, 0]]);
-    poly(ctx, [[-40, -8], [-48, -2], [-40, 2]]);
+    ellipse(ctx, 0, -3, 42, 7);
+    // free-flooding deck casing
+    poly(ctx, [[-36, -12], [34, -12], [40, -9], [-38, -9]]);
+    // conning tower with wintergarten (AA platform) aft
+    poly(ctx, [[-4, -12], [10, -12], [8, -22], [-2, -22]]);
+    poly(ctx, [[-10, -12], [-4, -12], [-4, -17], [-9, -17]]);
+    rect(ctx, -8, -19, 1.2, 2);
+    // periscopes + attack scope
+    rect(ctx, 1, -28, 1.4, 6);
+    rect(ctx, 4.5, -26, 1.4, 4);
+    // 88mm deck gun forward of tower
+    rect(ctx, 17, -14, 5, 2.5);
+    barrel(ctx, 20, -13.5, 12, -0.15, 1.8);
+    // bow with net cutter serration + stern taper
+    poly(ctx, [[38, -9], [50, -5], [40, 1]]);
+    poly(ctx, [[44, -8], [47, -6], [44, -5]]);
+    poly(ctx, [[-40, -7], [-48, -2], [-40, 2]]);
   },
+  // Los Angeles-class SSN: cylindrical hull with long parallel midbody, forward sail with sail planes, cruciform stern
   nuke_sub(ctx) {
-    // teardrop hull
-    ellipse(ctx, 0, -4, 52, 9);
-    poly(ctx, [[46, -9], [60, -4], [46, 1]]);
-    // tall streamlined sail with dive planes + masts
-    poly(ctx, [[-14, -12], [4, -12], [2, -26], [-12, -26]]);
-    rect(ctx, -18, -22, 26, 2.5);
-    rect(ctx, -7, -32, 1.5, 6);
-    rect(ctx, -3, -30, 1.5, 4);
-    // cruciform stern: rudder + stern plane
-    poly(ctx, [[-48, -6], [-58, -16], [-54, -4]]);
-    poly(ctx, [[-48, -2], [-58, 8], [-54, -2]]);
+    // parallel midbody + rounded bow
+    rect(ctx, -34, -12, 72, 17);
+    ellipse(ctx, 38, -3.5, 16, 8.5);
+    // tapered stern cone
+    poly(ctx, [[-34, -12], [-34, 5], [-56, -2], [-52, -5]]);
+    // sail set forward, sail-mounted dive planes
+    poly(ctx, [[2, -12], [18, -12], [17, -27], [4, -27]]);
+    rect(ctx, -2, -21, 24, 2.2);
+    // masts/periscopes
+    rect(ctx, 9, -33, 1.4, 6);
+    rect(ctx, 13, -31, 1.4, 4);
+    // cruciform stern: upper rudder + stern plane
+    poly(ctx, [[-50, -4], [-58, -15], [-54, -3]]);
+    poly(ctx, [[-50, -1], [-58, 9], [-54, -1]]);
+    // seven-blade prop hint
+    ellipse(ctx, -57, -2.5, 1.6, 4);
   },
 };
 
