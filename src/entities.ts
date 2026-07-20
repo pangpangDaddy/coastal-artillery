@@ -109,11 +109,22 @@ function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, 
   };
   switch (weapon.kind) {
     case 'shell': {
-      const dx = aimX - ox, dy = aimY - oy;
-      const d = Math.max(1, Math.hypot(dx, dy));
-      const arc = Math.min(0.35, d / 2500);
-      p.vx = (dx / d) * weapon.projSpeed;
-      p.vy = (dy / d) * weapon.projSpeed - weapon.projSpeed * arc * 0.5;
+      // exact ballistic solution for gravity 230 so max-range shots land on target
+      const g = 230;
+      const s = weapon.projSpeed;
+      const X = Math.abs(aimX - ox);
+      const Y = aimY - oy;
+      if (X > 1) {
+        const a = (g * X * X) / (2 * s * s);
+        const disc = X * X - 4 * a * (a - Y);
+        const u = disc >= 0 ? (-X + Math.sqrt(disc)) / (2 * a) : -1;
+        const inv = 1 / Math.sqrt(1 + u * u);
+        p.vx = Math.sign(aimX - ox) * s * inv;
+        p.vy = s * u * inv;
+      } else {
+        p.vx = 0;
+        p.vy = -s;
+      }
       b.effects.muzzle(ox, oy);
       if (weapon.damage >= 90) b.sound.bigGun(); else b.sound.fire(weapon.damage > 50);
       break;

@@ -1,5 +1,7 @@
 export type Lang = 'en' | 'zh';
 
+import { nationName } from './nations';
+
 const LANG_KEY = 'coastal-artillery-lang';
 
 export let lang: Lang = (() => {
@@ -44,6 +46,7 @@ const UI: Record<string, [string, string]> = {
   upRof: ['ROF', '装填'],
   upMax: ['MAX', '满级'],
   upTitle: ['UPGRADES', '武器升级'],
+  nationLabel: ['SELECT NATION — arsenal & bonuses', '选择国家 — 决定武器库与加成'],
 };
 
 export function t(key: keyof typeof UI): string {
@@ -86,6 +89,8 @@ const ZH_DESCS: Record<string, string> = {
 };
 
 export function nameOf(id: string, fallback: string): string {
+  const nn = nationName(id);
+  if (nn) return lang === 'zh' ? nn[1] : nn[0];
   return lang === 'zh' ? ZH_NAMES[id] ?? fallback : fallback;
 }
 
@@ -95,9 +100,13 @@ export function descOf(id: string, fallback: string): string {
 
 // short label for HUD buttons: first word in EN, up to 5 chars in ZH
 export function shortName(id: string, fallback: string): string {
+  const nn = nationName(id);
   if (lang === 'zh') {
-    const n = ZH_NAMES[id] ?? fallback;
+    const n = nn ? nn[1] : ZH_NAMES[id] ?? fallback;
     return n.length > 5 ? n.slice(0, 5) : n;
   }
-  return fallback.split(' ')[0].toUpperCase();
+  const en = nn ? nn[0] : fallback;
+  const words = en.split(' ');
+  const pick = words.find(w => /\d/.test(w)) ?? words[0];
+  return pick.toUpperCase();
 }
