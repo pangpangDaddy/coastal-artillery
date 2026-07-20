@@ -100,39 +100,90 @@ const SHIPS: Record<string, (ctx: Ctx) => void> = {
   },
 };
 
-// Air units drawn facing +x, center at origin
+// Air units drawn facing +x, center at origin (side profiles)
 const AIR: Record<string, (ctx: Ctx) => void> = {
   biplane(ctx) {
-    rect(ctx, -22, -10, 40, 3);
-    rect(ctx, -20, 0, 38, 3);
-    ellipse(ctx, 0, -3, 16, 4);
-    poly(ctx, [[-20, -3], [-30, -10], [-30, 2]]);
-    rect(ctx, 16, -4, 6, 3);
+    // fuselage tapering to tail
+    poly(ctx, [[24, -1], [20, -3], [-16, -3], [-26, -1], [-26, 1], [-16, 3], [20, 3]]);
+    // upper + lower wings (airfoil cross-sections) with struts
+    rect(ctx, -8, -13, 24, 3);
+    rect(ctx, -6, 4, 22, 3);
+    rect(ctx, -2, -13, 1.5, 17);
+    rect(ctx, 10, -13, 1.5, 17);
+    // cockpit
+    poly(ctx, [[2, -3], [0, -7], [-6, -7], [-8, -3]]);
+    // tail fin + tailplane
+    poly(ctx, [[-22, -2], [-30, -11], [-26, -1]]);
+    rect(ctx, -32, -2, 9, 2.5);
+    // propeller + wheels
+    rect(ctx, 24, -8, 2, 16);
+    ellipse(ctx, 2, 9, 2.5, 2.5);
+    ellipse(ctx, 12, 9, 2.5, 2.5);
   },
   zeppelin(ctx) {
     ellipse(ctx, 0, 0, 56, 13);
-    poly(ctx, [[-48, 0], [-64, -10], [-60, 0], [-64, 10]]);
-    rect(ctx, -10, 13, 18, 6);
+    // cross tail fins
+    poly(ctx, [[-40, -6], [-62, -16], [-52, -3]]);
+    poly(ctx, [[-40, 6], [-62, 16], [-52, 3]]);
+    // gondola slung below
+    poly(ctx, [[-14, 13], [10, 13], [7, 20], [-11, 20]]);
   },
   fighter(ctx) {
-    poly(ctx, [[24, 0], [-6, -4], [-18, -14], [-14, -3], [-24, -3], [-24, 3], [-14, 3], [-18, 14], [-6, 4]]);
-    poly(ctx, [[-20, -3], [-30, -10], [-26, 0], [-30, 8]]);
+    // fuselage with spinner nose
+    poly(ctx, [[27, -1], [20, -4], [-4, -5], [-22, -2], [-22, 2], [-4, 5], [20, 4], [27, 1]]);
+    // canopy
+    poly(ctx, [[8, -5], [4, -9], [-4, -9], [-9, -5]]);
+    // wing (chord seen from the side, dipping below fuselage)
+    poly(ctx, [[12, 3], [-2, 4], [-9, 8], [9, 7]]);
+    // tail fin + tailplane
+    poly(ctx, [[-18, -2], [-25, -13], [-21, -1]]);
+    rect(ctx, -27, -2, 8, 2.5);
+    // propeller
+    rect(ctx, 27, -9, 2, 18);
   },
   bomber(ctx) {
-    ellipse(ctx, 0, 0, 24, 5);
-    poly(ctx, [[4, -2], [-10, -22], [-14, -22], [-4, -2]]);
-    poly(ctx, [[4, 2], [-10, 22], [-14, 22], [-4, 2]]);
-    poly(ctx, [[-22, 0], [-32, -8], [-30, 0], [-32, 8]]);
+    // heavier fuselage
+    poly(ctx, [[30, -1], [22, -5], [-8, -6], [-26, -2], [-26, 2], [-8, 6], [22, 5], [30, 1]]);
+    // long greenhouse canopy
+    poly(ctx, [[12, -6], [8, -10], [-8, -10], [-12, -6]]);
+    // wing
+    poly(ctx, [[14, 4], [-4, 5], [-12, 10], [10, 8]]);
+    // tail fin + tailplane
+    poly(ctx, [[-21, -3], [-29, -15], [-24, -2]]);
+    rect(ctx, -31, -2, 9, 3);
+    // propeller
+    rect(ctx, 30, -10, 2, 20);
+    // torpedo slung under belly
+    rect(ctx, -6, 11, 26, 4);
+    poly(ctx, [[20, 11], [26, 13], [20, 15]]);
   },
   jet(ctx) {
-    poly(ctx, [[28, 0], [2, -3], [-12, -16], [-16, -16], [-6, -2], [-20, -2], [-14, 0], [-20, 2], [-6, 2], [-16, 16], [-12, 16], [2, 3]]);
-    poly(ctx, [[-18, 0], [-26, -8], [-24, 0], [-26, 8]]);
+    // pointed nose, sleek fuselage
+    poly(ctx, [[32, 0], [20, -4], [-6, -5], [-24, -3], [-24, 3], [-6, 5], [20, 4]]);
+    // canopy
+    poly(ctx, [[16, -4], [10, -9], [2, -9], [-2, -4]]);
+    // intake under mid-body
+    rect(ctx, 0, 4, 11, 3);
+    // swept vertical tail
+    poly(ctx, [[-12, -4], [-18, -16], [-24, -16], [-21, -4]]);
+    // wing hint
+    poly(ctx, [[10, 3], [-8, 3], [-15, 7], [6, 6]]);
+    // exhaust nozzle
+    rect(ctx, -27, -2, 4, 5);
   },
   uav(ctx) {
-    ellipse(ctx, 0, 0, 18, 3.5);
-    poly(ctx, [[2, -2], [-12, -18], [-8, -18], [8, -2]]);
-    poly(ctx, [[-16, 0], [-24, -10], [-22, 0], [-24, 6]]);
-    ellipse(ctx, 8, 4, 3, 3);
+    // slender fuselage with bulbous sensor nose
+    poly(ctx, [[18, -2], [-20, -2], [-20, 2], [18, 2]]);
+    ellipse(ctx, 18, 0, 7, 4);
+    // sensor ball under chin
+    ellipse(ctx, 14, 5, 3, 3);
+    // long thin wing (chord)
+    rect(ctx, -6, -3.5, 20, 2);
+    // inverted-V tail
+    poly(ctx, [[-16, 1], [-25, 10], [-21, 1]]);
+    poly(ctx, [[-16, -1], [-24, -8], [-20, -1]]);
+    // rear pusher propeller
+    rect(ctx, -27, -7, 2, 14);
   },
 };
 
