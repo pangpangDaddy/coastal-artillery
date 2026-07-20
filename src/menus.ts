@@ -1,5 +1,8 @@
 import { ERAS, STAGES } from './data';
+import { lang, nameOf, t, toggleLang } from './i18n';
 import { VIEW_H, VIEW_W } from './types';
+
+const LANG_BTN = { x: VIEW_W - 190, y: 16, w: 174, h: 32 };
 
 const SAVE_KEY = 'coastal-artillery-progress';
 
@@ -31,6 +34,10 @@ export class Menu {
 
   // returns stage id if one was chosen
   click(cx: number, cy: number): string | null {
+    if (cx >= LANG_BTN.x && cx <= LANG_BTN.x + LANG_BTN.w && cy >= LANG_BTN.y && cy <= LANG_BTN.y + LANG_BTN.h) {
+      toggleLang();
+      return null;
+    }
     if (this.screen === 'title') {
       this.screen = 'stages';
       return null;
@@ -56,18 +63,27 @@ export class Menu {
       ctx.fillRect(off, y, 90, 2);
     }
 
+    // language toggle button
+    ctx.fillStyle = '#1c2027';
+    ctx.fillRect(LANG_BTN.x, LANG_BTN.y, LANG_BTN.w, LANG_BTN.h);
+    ctx.strokeStyle = '#4a5260';
+    ctx.strokeRect(LANG_BTN.x, LANG_BTN.y, LANG_BTN.w, LANG_BTN.h);
+    ctx.fillStyle = '#c9ccd2';
+    ctx.font = '13px monospace';
     ctx.textAlign = 'center';
+    ctx.fillText(lang === 'zh' ? 'EN / 中文 ✓' : 'EN ✓ / 中文', LANG_BTN.x + LANG_BTN.w / 2, LANG_BTN.y + 21);
+
     if (this.screen === 'title') {
       ctx.fillStyle = '#e8e6e0';
       ctx.font = 'bold 64px monospace';
       ctx.fillText('COASTAL ARTILLERY', VIEW_W / 2, 200);
       ctx.fillStyle = '#8a8f98';
       ctx.font = '18px monospace';
-      ctx.fillText('Three eras of naval warfare. One coastline to hold.', VIEW_W / 2, 244);
+      ctx.fillText(t('tagline'), VIEW_W / 2, 244);
       ctx.fillStyle = '#c9ccd2';
       ctx.font = '16px monospace';
       const blink = Math.sin(time * 3) > -0.3;
-      if (blink) ctx.fillText('— CLICK TO START —', VIEW_W / 2, 330);
+      if (blink) ctx.fillText(t('clickStart'), VIEW_W / 2, 330);
       ctx.fillStyle = '#5a5f68';
       ctx.font = '13px monospace';
       ctx.fillText('1914 · 1939 · 2026', VIEW_W / 2, 300);
@@ -77,7 +93,7 @@ export class Menu {
     // stage select
     ctx.fillStyle = '#e8e6e0';
     ctx.font = 'bold 30px monospace';
-    ctx.fillText('SELECT CAMPAIGN', VIEW_W / 2, 80);
+    ctx.fillText(t('selectCampaign'), VIEW_W / 2, 80);
     this.cards = [];
     const colW = 340;
     const gap = 30;
@@ -86,7 +102,7 @@ export class Menu {
       const cx = startX + ei * (colW + gap);
       ctx.fillStyle = '#c9ccd2';
       ctx.font = 'bold 18px monospace';
-      ctx.fillText(era.name.toUpperCase(), cx + colW / 2, 140);
+      ctx.fillText(lang === 'zh' ? nameOf(era.id, era.name) : era.name.toUpperCase(), cx + colW / 2, 140);
       ctx.fillStyle = '#6a6f78';
       ctx.font = '13px monospace';
       ctx.fillText(era.years, cx + colW / 2, 162);
@@ -101,15 +117,15 @@ export class Menu {
         ctx.strokeRect(cx, y, colW, 92);
         ctx.fillStyle = locked ? '#4a4d55' : '#e8e6e0';
         ctx.font = 'bold 16px monospace';
-        ctx.fillText(`${si + 1}. ${stage.name}`, cx + colW / 2, y + 34);
+        ctx.fillText(`${si + 1}. ${nameOf(stage.id, stage.name)}`, cx + colW / 2, y + 34);
         ctx.font = '12px monospace';
         ctx.fillStyle = locked ? '#3a3d45' : '#7d8390';
-        ctx.fillText(locked ? '🔒 Complete previous stages' : stage.bossAt ? 'Flagship battle' : 'Naval assault', cx + colW / 2, y + 60);
+        ctx.fillText(locked ? t('lockedHint') : stage.bossAt ? t('flagshipBattle') : t('navalAssault'), cx + colW / 2, y + 60);
         this.cards.push({ id: stage.id, x: cx, y, w: colW, h: 92, locked });
       });
     });
     ctx.fillStyle = '#5a5f68';
     ctx.font = '13px monospace';
-    ctx.fillText('Controls: ←/→ or A/D scroll · click buttons to build · M mute', VIEW_W / 2, VIEW_H - 40);
+    ctx.fillText(t('controlsMenu'), VIEW_W / 2, VIEW_H - 40);
   }
 }

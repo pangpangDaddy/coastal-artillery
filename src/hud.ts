@@ -5,6 +5,7 @@ import { drawTurretIcon, drawUnitSilhouette } from './silhouettes';
 import { turretSlotPos } from './entities';
 import { HUD_H, RADAR_H, RADAR_W, RADAR_X, RADAR_Y, VIEW_H, VIEW_W, WORLD_W } from './types';
 import { inRadar } from './core';
+import { nameOf, shortName, t } from './i18n';
 
 const BTN = 64;
 const BTN_GAP = 8;
@@ -79,12 +80,12 @@ export class Hud {
     // top base HP bars
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(0, 0, VIEW_W, 30);
-    bar(ctx, 20, 10, 320, 10, b.playerBaseHp / b.playerBaseMax, '#3f8a3f', 'BASE');
-    bar(ctx, VIEW_W - 340, 10, 320, 10, b.enemyBaseHp / b.enemyBaseMax, '#c22a2a', 'ENEMY');
+    bar(ctx, 20, 10, 320, 10, b.playerBaseHp / b.playerBaseMax, '#3f8a3f', t('base'));
+    bar(ctx, VIEW_W - 340, 10, 320, 10, b.enemyBaseHp / b.enemyBaseMax, '#c22a2a', t('enemy'));
     ctx.fillStyle = '#ddd';
     ctx.font = 'bold 13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`${b.era.name} — ${b.stage.name}`, VIEW_W / 2, 20);
+    ctx.fillText(`${nameOf(b.era.id, b.era.name)} — ${nameOf(b.stage.id, b.stage.name)}`, VIEW_W / 2, 20);
 
     // message
     if (b.messageTimer > 0) {
@@ -103,7 +104,7 @@ export class Hud {
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ddd';
     ctx.font = '12px monospace';
-    ctx.fillText(`SCORE ${b.score}`, 14, VIEW_H - HUD_H + 18);
+    ctx.fillText(`${t('score')} ${b.score}`, 14, VIEW_H - HUD_H + 18);
     const resW = 220;
     ctx.fillStyle = '#333';
     ctx.fillRect(150, VIEW_H - HUD_H + 8, resW, 12);
@@ -111,7 +112,7 @@ export class Hud {
     const resRatio = Math.min(1, b.resource / 800);
     ctx.fillRect(150, VIEW_H - HUD_H + 8, resW * resRatio, 12);
     ctx.fillStyle = '#111';
-    ctx.fillText(`RES ${Math.floor(b.resource)}`, 156, VIEW_H - HUD_H + 18);
+    ctx.fillText(`${t('res')} ${Math.floor(b.resource)}`, 156, VIEW_H - HUD_H + 18);
 
     // buttons
     for (const btn of this.buttons) {
@@ -136,7 +137,7 @@ export class Hud {
       ctx.textAlign = 'center';
       ctx.fillText(`${def.cost}`, btn.x + BTN / 2, btn.y + BTN - 5);
       ctx.fillStyle = '#999';
-      ctx.fillText(def.name.split(' ')[0].toUpperCase(), btn.x + BTN / 2, btn.y + 11);
+      ctx.fillText(shortName(btn.id, def.name), btn.x + BTN / 2, btn.y + 11);
     }
 
     // placement hint
@@ -144,7 +145,7 @@ export class Hud {
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
       ctx.font = '13px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('Click a slot on your cliff to install', VIEW_W / 2, VIEW_H - HUD_H - 10);
+      ctx.fillText(t('placeHint'), VIEW_W / 2, VIEW_H - HUD_H - 10);
     }
 
     // radar
@@ -157,11 +158,11 @@ export class Hud {
       ctx.textAlign = 'center';
       ctx.fillStyle = b.result === 'win' ? '#7ee787' : '#ff6b5e';
       ctx.font = 'bold 52px monospace';
-      ctx.fillText(b.result === 'win' ? 'VICTORY' : 'DEFEAT', VIEW_W / 2, VIEW_H / 2 - 30);
+      ctx.fillText(b.result === 'win' ? t('victory') : t('defeat'), VIEW_W / 2, VIEW_H / 2 - 30);
       ctx.fillStyle = '#ddd';
       ctx.font = '16px monospace';
-      ctx.fillText(`Score: ${b.score}    Time: ${Math.floor(b.time)}s`, VIEW_W / 2, VIEW_H / 2 + 10);
-      ctx.fillText(b.result === 'win' ? 'Press ENTER for next stage' : 'Press ENTER to retry', VIEW_W / 2, VIEW_H / 2 + 44);
+      ctx.fillText(`${t('scoreLabel')}: ${b.score}    ${t('timeLabel')}: ${Math.floor(b.time)}s`, VIEW_W / 2, VIEW_H / 2 + 10);
+      ctx.fillText(b.result === 'win' ? t('nextStage') : t('retry'), VIEW_W / 2, VIEW_H / 2 + 44);
     }
   }
 }
@@ -208,7 +209,7 @@ function renderRadar(ctx: CanvasRenderingContext2D, b: Battle, cam: Camera) {
   ctx.fillStyle = '#8fa8b8';
   ctx.font = '9px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText('RADAR — click / drag to move view', rx + 4, ry + 10);
+  ctx.fillText(t('radarLabel'), rx + 4, ry + 10);
   ctx.fillStyle = '#5f7482';
-  ctx.fillText('A/D scroll · wheel · R-drag pan · Q/E jump to base', rx + 4, ry + rh + 12);
+  ctx.fillText(t('radarControls'), rx + 4, ry + rh + 12);
 }

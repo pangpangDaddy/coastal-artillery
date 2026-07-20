@@ -1,4 +1,5 @@
 import { Sound } from './audio';
+import { t } from './i18n';
 import { Effects } from './effects';
 import { eraById, stageById, UNITS, TURRETS } from './data';
 import {
@@ -40,7 +41,7 @@ export class Battle {
     this.enemyBaseHp = this.stage.enemyBaseHp;
     this.enemyBaseMax = this.stage.enemyBaseHp;
     for (const t of this.stage.enemyTurrets) spawnTurret(this, t.defId, 'enemy', t.slot);
-    this.message = 'Destroy the enemy base — defend your coast!';
+    this.message = t('msgStart');
     this.messageTimer = 4;
   }
 
@@ -81,7 +82,7 @@ export class Battle {
     const waves = this.stage.waves;
     while (this.waveIndex < waves.length && this.time >= waves[this.waveIndex].at) {
       for (const id of waves[this.waveIndex].units) spawnUnit(this, id, 'enemy');
-      this.message = 'Enemy wave incoming!';
+      this.message = t('msgWave');
       this.messageTimer = 2.5;
       this.waveIndex++;
     }
@@ -90,7 +91,7 @@ export class Battle {
     if (!this.bossSpawned && this.stage.bossAt && this.time >= this.stage.bossAt) {
       spawnUnit(this, this.era.bossUnit, 'enemy');
       this.bossSpawned = true;
-      this.message = 'WARNING: Enemy flagship approaching!';
+      this.message = t('msgBoss');
       this.messageTimer = 4;
       this.sound.alarm();
     }

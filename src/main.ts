@@ -5,6 +5,7 @@ import { Hud } from './hud';
 import { Menu, saveUnlocked } from './menus';
 import { renderBattle } from './render';
 import { VIEW_H, VIEW_W } from './types';
+import { t } from './i18n';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -110,9 +111,9 @@ function render() {
     ctx.fillStyle = '#e8e6e0';
     ctx.font = 'bold 40px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('PAUSED', VIEW_W / 2, VIEW_H / 2);
+    ctx.fillText(t('paused'), VIEW_W / 2, VIEW_H / 2);
     ctx.font = '15px monospace';
-    ctx.fillText('ESC to resume', VIEW_W / 2, VIEW_H / 2 + 36);
+    ctx.fillText(t('escResume'), VIEW_W / 2, VIEW_H / 2 + 36);
   }
 }
 
