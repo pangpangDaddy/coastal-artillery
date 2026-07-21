@@ -174,7 +174,7 @@ function drawCoastFoam(ctx: CanvasRenderingContext2D, cam: Camera, time: number)
   }
 }
 
-function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam: Camera, hitFlash: number, time: number, flagColor: string) {
+function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam: Camera, hitFlash: number, time: number, flagColor: string, era: string) {
   const isPlayer = side === 'player';
   const baseX = isPlayer ? 0 : WORLD_W;
   const dir = isPlayer ? 1 : -1;
@@ -239,52 +239,208 @@ function drawCliff(ctx: CanvasRenderingContext2D, side: 'player' | 'enemy', cam:
   ctx.fillStyle = rockLight;
   ctx.fillRect(sx(coastX) - 26, SEA_Y - 26, 30, 3);
 
-  // base fortress: wide lower bastion anchored into the cliff + observation tower
+  // era-specific shore base
   const fortX = isPlayer ? baseX + 60 : baseX - 60;
   const fortDark = isPlayer ? '#24262b' : '#57201e';
-  // lower bastion, extends down into the rock so it never floats
-  ctx.fillStyle = fortDark;
-  ctx.fillRect(sx(fortX) - 34, SEA_Y - 148, 68, 90);
-  ctx.fillStyle = rockLight;
-  ctx.fillRect(sx(fortX) - 34, SEA_Y - 148, 68, 2);
-  // embrasure slit in the bastion
-  ctx.fillStyle = rockDark;
-  ctx.fillRect(sx(fortX) - 22, SEA_Y - 132, 14, 5);
-  ctx.fillRect(sx(fortX) + 8, SEA_Y - 132, 14, 5);
-  // upper observation tower
-  ctx.fillStyle = fortDark;
-  ctx.fillRect(sx(fortX) - 22, SEA_Y - 200, 44, 52);
-  // merlons
-  for (let m = -1; m <= 1; m++) {
-    ctx.fillRect(sx(fortX) + m * 15 - 4, SEA_Y - 209, 9, 9);
+  const f = sx(fortX);
+  const coastSx = sx(coastX);
+  const lx = (d: number) => f + dir * d; // local x, positive toward the sea
+  let poleX = f;
+  let poleTop = SEA_Y - 244;
+
+  if (era === 'ww2') {
+    // Atlantic-Wall concrete casemate with sloped roof toward the sea
+    ctx.fillStyle = fortDark;
+    ctx.beginPath();
+    ctx.moveTo(lx(-38), SEA_Y - 56);
+    ctx.lineTo(lx(-38), SEA_Y - 132);
+    ctx.lineTo(lx(4), SEA_Y - 132);
+    ctx.lineTo(lx(38), SEA_Y - 106);
+    ctx.lineTo(lx(38), SEA_Y - 56);
+    ctx.closePath();
+    ctx.fill();
+    // concrete shuttering lines
+    ctx.strokeStyle = rockDark;
+    ctx.lineWidth = 1;
+    for (let l = 0; l < 3; l++) {
+      const ly = SEA_Y - 70 - l * 18;
+      ctx.beginPath();
+      ctx.moveTo(lx(-36), ly);
+      ctx.lineTo(lx(36), ly);
+      ctx.stroke();
+    }
+    // stepped embrasure facing the sea
+    ctx.fillStyle = rockDark;
+    ctx.fillRect(Math.min(lx(10), lx(34)), SEA_Y - 100, 24, 12);
+    ctx.fillStyle = '#0d0e10';
+    ctx.fillRect(Math.min(lx(15), lx(29)), SEA_Y - 97, 14, 6);
+    // camouflage patches
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.beginPath();
+    ctx.ellipse(lx(-14), SEA_Y - 92, 14, 7, 0.4, 0, Math.PI * 2);
+    ctx.ellipse(lx(12), SEA_Y - 68, 11, 6, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    // fire-control tower with rangefinder arms
+    ctx.fillStyle = fortDark;
+    ctx.fillRect(Math.min(lx(-30), lx(-10)), SEA_Y - 196, 20, 66);
+    ctx.fillRect(Math.min(lx(-34), lx(-6)), SEA_Y - 208, 28, 14);
+    ctx.fillStyle = rockDark;
+    ctx.fillRect(Math.min(lx(-29), lx(-11)), SEA_Y - 204, 18, 4);
+    ctx.fillStyle = fortDark;
+    ctx.fillRect(Math.min(lx(-42), lx(2)), SEA_Y - 213, 44, 4);
+    poleX = lx(-20);
+    poleTop = SEA_Y - 250;
+    // czech hedgehogs against landings
+    ctx.strokeStyle = isPlayer ? '#2a2d33' : '#3e2321';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 3; i++) {
+      const hx = coastSx - dir * (16 + i * 15);
+      ctx.beginPath();
+      ctx.moveTo(hx - 6, SEA_Y + 2); ctx.lineTo(hx + 6, SEA_Y - 10);
+      ctx.moveTo(hx - 6, SEA_Y - 10); ctx.lineTo(hx + 6, SEA_Y + 2);
+      ctx.moveTo(hx, SEA_Y - 12); ctx.lineTo(hx, SEA_Y + 2);
+      ctx.stroke();
+    }
+  } else if (era === 'modern') {
+    // naval command block with glass bands
+    ctx.fillStyle = fortDark;
+    ctx.fillRect(f - 36, SEA_Y - 132, 72, 76);
+    ctx.fillStyle = rockLight;
+    ctx.fillRect(f - 36, SEA_Y - 132, 72, 2);
+    ctx.fillStyle = 'rgba(140,180,200,0.35)';
+    ctx.fillRect(f - 30, SEA_Y - 122, 60, 7);
+    ctx.fillRect(f - 30, SEA_Y - 104, 60, 7);
+    ctx.fillStyle = rockDark;
+    ctx.fillRect(f - 8, SEA_Y - 80, 16, 24);
+    // radome on the roof
+    ctx.fillStyle = fortDark;
+    ctx.fillRect(lx(-16) - 5, SEA_Y - 146, 10, 14);
+    ctx.fillStyle = '#d8dcde';
+    ctx.beginPath();
+    ctx.arc(lx(-16), SEA_Y - 156, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120,126,130,0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(lx(-16), SEA_Y - 156, 12, -0.4, Math.PI * 0.6);
+    ctx.stroke();
+    // lattice comms mast with blinking beacon
+    const mx = lx(18);
+    ctx.strokeStyle = fortDark;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(mx - 6, SEA_Y - 132); ctx.lineTo(mx, SEA_Y - 212);
+    ctx.moveTo(mx + 6, SEA_Y - 132); ctx.lineTo(mx, SEA_Y - 212);
+    for (let l = 0; l < 4; l++) {
+      const ly = SEA_Y - 144 - l * 18;
+      const hw = 5 - l;
+      ctx.moveTo(mx - hw, ly); ctx.lineTo(mx + hw, ly);
+    }
+    ctx.stroke();
+    ctx.fillStyle = fortDark;
+    ctx.fillRect(mx - 10, SEA_Y - 200, 20, 3);
+    if (Math.sin(time * 4) > 0) {
+      ctx.fillStyle = '#ff5044';
+      ctx.beginPath();
+      ctx.arc(mx, SEA_Y - 214, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    poleX = lx(-34);
+    poleTop = SEA_Y - 170;
+    // tetrapod breakwater at the waterline
+    ctx.strokeStyle = isPlayer ? '#43464c' : '#4a2a28';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+      const hx = coastSx - dir * (16 + i * 14);
+      const hy = SEA_Y - 3 + (i % 2) * 3;
+      ctx.beginPath();
+      ctx.moveTo(hx, hy); ctx.lineTo(hx - 6, hy + 6);
+      ctx.moveTo(hx, hy); ctx.lineTo(hx + 6, hy + 6);
+      ctx.moveTo(hx, hy); ctx.lineTo(hx, hy - 8);
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  } else {
+    // WWI masonry coastal fort: brick bastion + crenellated tower
+    ctx.fillStyle = fortDark;
+    ctx.fillRect(f - 34, SEA_Y - 148, 68, 90);
+    ctx.fillStyle = rockLight;
+    ctx.fillRect(f - 34, SEA_Y - 148, 68, 2);
+    // brick mortar courses
+    ctx.strokeStyle = rockDark;
+    ctx.lineWidth = 1;
+    for (let l = 0; l < 5; l++) {
+      const ly = SEA_Y - 138 + l * 16;
+      ctx.beginPath();
+      ctx.moveTo(f - 34, ly);
+      ctx.lineTo(f + 34, ly);
+      for (let c = 0; c < 4; c++) {
+        const bx = f - 27 + c * 17 + (l % 2) * 8;
+        ctx.moveTo(bx, ly);
+        ctx.lineTo(bx, ly + 16);
+      }
+      ctx.stroke();
+    }
+    // embrasure slits
+    ctx.fillStyle = rockDark;
+    ctx.fillRect(f - 22, SEA_Y - 132, 14, 5);
+    ctx.fillRect(f + 8, SEA_Y - 132, 14, 5);
+    // sandbag parapet on the bastion roof
+    ctx.fillStyle = isPlayer ? '#3b3e44' : '#5a2f2c';
+    for (let i = 0; i < 7; i++) {
+      ctx.beginPath();
+      ctx.ellipse(f - 30 + i * 10, SEA_Y - 151, 5.5, 3.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // crenellated observation tower
+    ctx.fillStyle = fortDark;
+    ctx.fillRect(f - 22, SEA_Y - 200, 44, 52);
+    for (let m = -1; m <= 1; m++) {
+      ctx.fillRect(f + m * 15 - 4, SEA_Y - 209, 9, 9);
+    }
+    ctx.fillStyle = rockDark;
+    ctx.fillRect(f - 14, SEA_Y - 190, 28, 5);
+    ctx.fillRect(f - 6, SEA_Y - 172, 12, 24);
+    // barbed wire posts on the waterline rock
+    ctx.strokeStyle = rockDark;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const px = coastSx - 20 + i * 8;
+      ctx.moveTo(px, SEA_Y - 26);
+      ctx.lineTo(px, SEA_Y - 35);
+    }
+    ctx.moveTo(coastSx - 22, SEA_Y - 33);
+    ctx.lineTo(coastSx - 2, SEA_Y - 33);
+    ctx.moveTo(coastSx - 22, SEA_Y - 29);
+    ctx.lineTo(coastSx - 2, SEA_Y - 29);
+    ctx.stroke();
+    // sandbags at the waterline
+    ctx.fillStyle = isPlayer ? '#33363b' : '#452725';
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.ellipse(coastSx - dir * (16 + i * 9), SEA_Y - 4, 6, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
-  // observation slit + door
-  ctx.fillStyle = rockDark;
-  ctx.fillRect(sx(fortX) - 14, SEA_Y - 190, 28, 5);
-  ctx.fillRect(sx(fortX) - 6, SEA_Y - 172, 12, 24);
+
   // flag pole + waving flag
   ctx.fillStyle = fortDark;
-  ctx.fillRect(sx(fortX) - 1.5, SEA_Y - 244, 3, 36);
+  ctx.fillRect(poleX - 1.5, poleTop, 3, 36);
   const wave = Math.sin(time * 5) * 4;
-  const tip = isPlayer ? 30 : -30;
+  const tip = dir * 30;
   ctx.fillStyle = flagColor;
   ctx.beginPath();
-  ctx.moveTo(sx(fortX) + 1.5, SEA_Y - 244);
-  ctx.quadraticCurveTo(sx(fortX) + tip * 0.6, SEA_Y - 240 + wave, sx(fortX) + tip, SEA_Y - 235 + wave);
-  ctx.quadraticCurveTo(sx(fortX) + tip * 0.6, SEA_Y - 230 + wave, sx(fortX) + 1.5, SEA_Y - 226);
+  ctx.moveTo(poleX + 1.5 * dir, poleTop);
+  ctx.quadraticCurveTo(poleX + tip * 0.6, poleTop + 4 + wave, poleX + tip, poleTop + 9 + wave);
+  ctx.quadraticCurveTo(poleX + tip * 0.6, poleTop + 14 + wave, poleX + 1.5 * dir, poleTop + 18);
   ctx.closePath();
   ctx.fill();
-  // sandbags at waterline
-  ctx.fillStyle = isPlayer ? '#33363b' : '#452725';
-  for (let i = 0; i < 4; i++) {
-    ctx.beginPath();
-    ctx.ellipse(sx(coastX) - 44 + i * 9, SEA_Y - 4, 6, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
 
   if (hitFlash > 0) {
     ctx.fillStyle = `rgba(255,80,60,${hitFlash * 2})`;
-    ctx.fillRect(sx(fortX) - 38, SEA_Y - 212, 76, 156);
+    ctx.fillRect(f - 44, SEA_Y - 216, 88, 160);
   }
 }
 
@@ -319,8 +475,8 @@ export function renderBattle(ctx: CanvasRenderingContext2D, b: Battle, cam: Came
   drawHorizon(ctx, cam);
   drawSea(ctx, cam, b.time);
   drawCoastFoam(ctx, cam, b.time);
-  drawCliff(ctx, 'player', cam, b.baseHitPlayer, b.time, b.nation.color);
-  drawCliff(ctx, 'enemy', cam, b.baseHitEnemy, b.time, b.enemyNation.color);
+  drawCliff(ctx, 'player', cam, b.baseHitPlayer, b.time, b.nation.color, b.era.id);
+  drawCliff(ctx, 'enemy', cam, b.baseHitEnemy, b.time, b.enemyNation.color, b.era.id);
   drawTurretSlots(ctx, b, cam);
 
   // sub layer hint (water darken below sub depth)
