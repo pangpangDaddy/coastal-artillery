@@ -1,3 +1,6 @@
 node_modules/
 dist/
+release/
+steam/output/
 *.log
+coastal-artillery-web.zip

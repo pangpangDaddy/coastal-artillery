@@ -1,0 +1,20 @@
+"AppBuild"
+{
+	"AppID" "YOUR_APP_ID"          // 注册 Steamworks 后替换为真实 AppID
+	"Desc" "Coastal Artillery v0.1.0"
+	"BuildOutput" "..\output\"
+	"ContentRoot" "..\..\release\win-unpacked\"  // electron-builder 输出目录
+
+	"Depots"
+	{
+		"YOUR_DEPOT_ID"            // 通常是 AppID + 1
+		{
+			"FileMapping"
+			{
+				"LocalPath" "*"
+				"DepotPath" "."
+				"recursive" "1"
+			}
+		}
+	}
+}

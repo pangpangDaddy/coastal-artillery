@@ -39,6 +39,8 @@ const UI: Record<string, [string, string]> = {
   retry: ['Press ENTER to retry', '按回车重试'],
   paused: ['PAUSED', '已暂停'],
   escResume: ['ESC to resume', '按 ESC 继续'],
+  pauseResume: ['RESUME', '继续游戏'],
+  pauseMenu: ['MAIN MENU', '返回主菜单'],
   msgStart: ['Destroy the enemy base — defend your coast!', '摧毁敌方基地 — 守住我方海岸！'],
   msgWave: ['Enemy wave incoming!', '敌方波次来袭！'],
   msgBoss: ['WARNING: Enemy flagship approaching!', '警告：敌方旗舰逼近！'],

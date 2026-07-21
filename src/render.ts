@@ -492,8 +492,9 @@ export function renderBattle(ctx: CanvasRenderingContext2D, b: Battle, cam: Came
     drawHpBar(ctx, sx, t.y - 34, 34, t.hp / t.maxHp, t.side === 'player' ? PLAYER_HP : ENEMY_HP);
   }
 
-  // units
-  for (const u of b.units) {
+  // units (sorted by y so nearer depth lanes draw on top)
+  const drawOrder = [...b.units].sort((a, c) => a.y - c.y);
+  for (const u of drawOrder) {
     const sx = u.x - cam.x;
     if (sx < -140 || sx > VIEW_W + 140) continue;
     const sideDir = u.side === 'player' ? 1 : -1;
@@ -501,7 +502,7 @@ export function renderBattle(ctx: CanvasRenderingContext2D, b: Battle, cam: Came
     let color = u.side === 'player' ? PLAYER_COLOR : ENEMY_COLOR;
     if (u.def.layer === 'sub') color = u.side === 'player' ? 'rgba(24,26,30,0.75)' : 'rgba(168,31,38,0.75)';
     if (u.flash > 0) color = '#fff';
-    drawUnitSilhouette(ctx, u.def.silhouette, u.def.layer, sx, u.y, u.def.size, facing, color);
+    drawUnitSilhouette(ctx, u.def.silhouette, u.def.layer, sx, u.y, u.def.size, facing, color, u.aim);
     const bw = 30 + u.def.size * 22;
     drawHpBar(ctx, sx, u.y - (u.def.layer === 'air' ? 26 : 34) * u.def.size - 8, bw, u.hp / u.maxHp, u.side === 'player' ? PLAYER_HP : ENEMY_HP);
     if (u.def.boss) {

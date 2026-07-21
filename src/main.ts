@@ -49,6 +49,24 @@ function perkCardRect(i: number): [number, number, number, number] {
   return [x0 + i * (cw + gap), PERK_PANEL.y + 62, cw, ch];
 }
 
+const PAUSE_BTN_W = 280, PAUSE_BTN_H = 46;
+const PAUSE_RESUME = { x: VIEW_W / 2 - PAUSE_BTN_W / 2, y: VIEW_H / 2 + 10, w: PAUSE_BTN_W, h: PAUSE_BTN_H };
+const PAUSE_MENU = { x: VIEW_W / 2 - PAUSE_BTN_W / 2, y: VIEW_H / 2 + 70, w: PAUSE_BTN_W, h: PAUSE_BTN_H };
+function inPauseBtn(p: [number, number], r: { x: number; y: number; w: number; h: number }): boolean {
+  return p[0] >= r.x && p[0] <= r.x + r.w && p[1] >= r.y && p[1] <= r.y + r.h;
+}
+function drawPauseBtn(ctx: CanvasRenderingContext2D, r: { x: number; y: number; w: number; h: number }, label: string) {
+  ctx.fillStyle = '#1e2126';
+  ctx.fillRect(r.x, r.y, r.w, r.h);
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(r.x, r.y, r.w, r.h);
+  ctx.fillStyle = '#e8e6e0';
+  ctx.font = 'bold 16px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 6);
+}
+
 function startStage(stageId: string) {
   battle = new Battle(stageId);
   camera = new Camera();
@@ -62,6 +80,7 @@ function backToMenu() {
   mode = 'menu';
   menu = new Menu(unlockAll);
   battle = null;
+  paused = false;
 }
 
 function update(dt: number) {
@@ -118,6 +137,15 @@ function update(dt: number) {
         startStage(battle.stage.id);
       }
       input.keys.delete('Enter');
+    }
+    return;
+  }
+
+  if (paused) {
+    const click = input.consumeClick();
+    if (click) {
+      if (inPauseBtn(click, PAUSE_RESUME)) { paused = false; battle.sound.click(); }
+      else if (inPauseBtn(click, PAUSE_MENU)) { backToMenu(); }
     }
     return;
   }
@@ -179,9 +207,12 @@ function render() {
     ctx.fillStyle = '#e8e6e0';
     ctx.font = 'bold 40px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(t('paused'), VIEW_W / 2, VIEW_H / 2);
-    ctx.font = '15px monospace';
-    ctx.fillText(t('escResume'), VIEW_W / 2, VIEW_H / 2 + 36);
+    ctx.fillText(t('paused'), VIEW_W / 2, VIEW_H / 2 - 40);
+    drawPauseBtn(ctx, PAUSE_RESUME, t('pauseResume'));
+    drawPauseBtn(ctx, PAUSE_MENU, t('pauseMenu'));
+    ctx.fillStyle = '#8a8f98';
+    ctx.font = '13px monospace';
+    ctx.fillText(t('escResume'), VIEW_W / 2, VIEW_H / 2 + 145);
   }
 }
 

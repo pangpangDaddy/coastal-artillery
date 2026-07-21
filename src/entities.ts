@@ -20,7 +20,15 @@ export function spawnUnit(b: Battle, defId: string, side: Side): Unit {
   const def = UNITS[defId];
   const dir = side === 'player' ? 1 : -1;
   const x = side === 'player' ? PLAYER_COAST_X - 20 : ENEMY_COAST_X + 20;
-  const y = def.layer === 'sea' ? SEA_Y : def.layer === 'sub' ? SUB_Y : (def.altitude ?? 150);
+  // spread same-layer units across depth lanes so they advance in parallel columns
+  const laneCounts = [0, 0, 0];
+  for (const o of b.units) {
+    if (!o.dead && o.side === side && o.def.layer === def.layer && o.lane >= 0) laneCounts[o.lane]++;
+  }
+  let lane = 0;
+  if (laneCounts[1] < laneCounts[lane]) lane = 1;
+  if (laneCounts[2] < laneCounts[lane]) lane = 2;
+  const y = def.layer === 'sea' ? SEA_Y + lane * 16 : def.layer === 'sub' ? SUB_Y + lane * 10 : (def.altitude ?? 150);
   const hp = side === 'enemy' ? Math.round(def.hp * b.enemyNation.hp) : def.hp;
   const u: Unit = {
     uid: nextUid++, def, side, x, y,
@@ -28,6 +36,7 @@ export function spawnUnit(b: Battle, defId: string, side: Side): Unit {
     reloads: def.weapons.map(w => WEAPONS[w].reload * (0.5 + Math.random() * 0.5)),
     carrierTimer: def.carrier ? def.carrier.interval * 0.5 : 0,
     launched: [], dead: false, flash: 0, vx: def.speed * dir, divePhase: 'cruise',
+    lane: def.layer === 'air' ? 0 : lane, aim: -0.1,
   };
   b.units.push(u);
   return u;
@@ -407,19 +416,34 @@ export function updateUnits(b: Battle, dt: number) {
         }
       }
     } else {
-      // move toward enemy unless blocked by friendly unit ahead or in weapon range of enemy base
+      // move toward enemy unless blocked by a friendly unit ahead in the same lane or at the lane's stop line
       let blocked = false;
       for (const o of b.units) {
-        if (o === u || o.dead || o.side !== u.side || o.def.layer !== def.layer) continue;
+        if (o === u || o.dead || o.side !== u.side || o.def.layer !== def.layer || o.lane !== u.lane) continue;
         const ahead = dir === 1 ? o.x > u.x : o.x < u.x;
         if (ahead && Math.abs(o.x - u.x) < (o.def.size + def.size) * 34) { blocked = true; break; }
       }
-      const stopX = dir === 1 ? ENEMY_COAST_X - 240 : PLAYER_COAST_X + 240;
+      const stopDist = 240 + u.lane * 70;
+      const stopX = dir === 1 ? ENEMY_COAST_X - stopDist : PLAYER_COAST_X + stopDist;
       const atLimit = dir === 1 ? u.x >= stopX : u.x <= stopX;
       if (!blocked && !atLimit) u.x += def.speed * dir * dt;
       if (def.layer === 'sea' && Math.random() < 0.15) b.effects.wakeTrail(u.x - dir * 30 * def.size, SEA_Y + 4);
       if (def.layer === 'sea' && def.size >= 1.1 && Math.random() < 0.06) {
         b.effects.funnelSmoke(u.x - dir * 6, u.y - 30 * def.size);
+      }
+
+      // track the main gun toward the current target so the barrel follows the attack direction
+      const gunId = def.weapons.find(wid => {
+        const k = WEAPONS[wid].kind;
+        return k === 'shell' || k === 'bullet';
+      });
+      if (gunId) {
+        const tgt = pickTarget(b, u.side, u.x, WEAPONS[gunId]);
+        if (tgt) {
+          const oy = u.y - 18 * def.size;
+          const want = Math.atan2(tgt.y - oy, Math.abs(tgt.x - u.x));
+          u.aim += (want - u.aim) * Math.min(1, dt * 8);
+        }
       }
     }
 
@@ -451,7 +475,7 @@ export function updateTurrets(b: Battle, dt: number) {
       const w = WEAPONS[t.def.weapons[i]];
       const target = pickTarget(b, t.side, t.x, w);
       if (target) {
-        t.aimAngle = Math.atan2(target.y - (t.y - 16), Math.abs(target.x - t.x)) * (t.side === 'player' ? -1 : -1);
+        t.aimAngle = Math.atan2(target.y - (t.y - 16), Math.abs(target.x - t.x));
       }
       if (t.reloads[i] > 0) continue;
       if (!target) { t.reloads[i] = 0.3; continue; }

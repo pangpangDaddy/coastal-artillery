@@ -3,16 +3,48 @@
   "version": "0.1.0",
   "description": "Black-and-white silhouette coastal defense game across three war eras (WWI / WWII / 2026)",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "sim": "tsx test/sim.ts"
+    "sim": "tsx test/sim.ts",
+    "desktop": "npm run build && electron .",
+    "dist": "npm run build && electron-builder --win --dir"
   },
   "license": "MIT",
+  "build": {
+    "appId": "com.pangpangdaddy.coastalartillery",
+    "productName": "Coastal Artillery",
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "steam_appid.txt",
+        "to": "../steam_appid.txt"
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/steamworks.js/**"
+    ],
+    "win": {
+      "target": "dir"
+    }
+  },
   "devDependencies": {
+    "electron": "^43.1.1",
+    "electron-builder": "^26.15.3",
     "tsx": "^4.23.1",
     "typescript": "^7.0.2",
     "vite": "^8.1.5"
+  },
+  "dependencies": {
+    "steamworks.js": "^0.4.0"
   }
 }

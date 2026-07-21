@@ -112,6 +112,8 @@ export interface Unit {
   flash: number;
   vx: number;
   divePhase: 'cruise' | 'dive' | 'climb';
+  lane: number;
+  aim: number;
 }
 
 export interface Turret {

@@ -6,7 +6,7 @@ import { turretSlotPos } from './entities';
 import { HUD_H, RADAR_H, RADAR_W, RADAR_X, RADAR_Y, VIEW_H, VIEW_W, WORLD_W } from './types';
 import { inRadar } from './core';
 import { nameOf, shortName, t, lang } from './i18n';
-import { isOwned, levelOf } from './armory';
+import { buyEquip, buyPrice, getXp, isOwned, levelOf } from './armory';
 
 const BTN = 56;
 const BTN_GAP = 6;
@@ -62,7 +62,22 @@ export class Hud {
     for (const btn of this.buttons) {
       if (cx >= btn.x && cx <= btn.x + BTN && cy >= btn.y && cy <= btn.y + BTN) {
         if (btn.kind === 'unit') {
-          if (!isOwned(btn.id)) { b.message = t('lockedEquip'); b.messageTimer = 2; return; }
+          if (!isOwned(btn.id)) {
+            const price = buyPrice(btn.id);
+            if (price !== null && getXp() >= price) {
+              buyEquip(btn.id);
+              b.sound.click();
+              b.message = lang === 'zh'
+                ? `已解锁 ${nameOf(btn.id, UNITS[btn.id].name)} — 点击购买`
+                : `Unlocked ${nameOf(btn.id, UNITS[btn.id].name)} — click to buy`;
+            } else {
+              b.message = lang === 'zh'
+                ? `需要 ${price} 经验解锁（当前 ${getXp()}）`
+                : `Need ${price} XP to unlock (have ${getXp()})`;
+            }
+            b.messageTimer = 2.5;
+            return;
+          }
           b.buyUnit(btn.id);
           this.state.selectedTurret = null;
         } else if (btn.kind === 'upgrade') {
@@ -118,7 +133,7 @@ export class Hud {
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ddd';
     ctx.font = '12px monospace';
-    ctx.fillText(`${t('score')} ${b.score}`, 14, VIEW_H - HUD_H + 18);
+    ctx.fillText(`${t('score')} ${b.score}   ${t('xpLabel')} ${getXp()}`, 14, VIEW_H - HUD_H + 18);
     const resW = 220;
     ctx.fillStyle = '#333';
     ctx.fillRect(150, VIEW_H - HUD_H + 8, resW, 12);
@@ -209,19 +224,20 @@ export class Hud {
       }
       if (locked) {
         // padlock
+        const price = buyPrice(btn.id);
+        const canAfford = price !== null && getXp() >= price;
         const lx = btn.x + BTN / 2, ly = btn.y + BTN / 2 + 2;
-        ctx.strokeStyle = '#8a8f98';
+        ctx.strokeStyle = canAfford ? '#e8c95c' : '#8a8f98';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(lx, ly - 4, 5, Math.PI, 0);
         ctx.stroke();
-        ctx.fillStyle = '#8a8f98';
+        ctx.fillStyle = canAfford ? '#e8c95c' : '#8a8f98';
         ctx.fillRect(lx - 7, ly - 4, 14, 11);
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#8a8f98';
         ctx.font = '9px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(lang === 'zh' ? '未解锁' : 'LOCKED', btn.x + BTN / 2, btn.y + BTN - 5);
+        ctx.fillText(`${price} XP`, btn.x + BTN / 2, btn.y + BTN - 5);
       } else {
         ctx.fillStyle = affordable ? '#e8c95c' : '#555';
         ctx.font = '10px monospace';
