@@ -51,6 +51,7 @@ export interface UnitDef {
   desc: string;
   carrier?: CarrierDef;
   altitude?: number;
+  dive?: boolean;
   boss?: boolean;
 }
 
@@ -110,6 +111,7 @@ export interface Unit {
   dead: boolean;
   flash: number;
   vx: number;
+  divePhase: 'cruise' | 'dive' | 'climb';
 }
 
 export interface Turret {

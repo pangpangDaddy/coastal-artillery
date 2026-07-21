@@ -27,7 +27,7 @@ export function spawnUnit(b: Battle, defId: string, side: Side): Unit {
     hp, maxHp: hp,
     reloads: def.weapons.map(w => WEAPONS[w].reload * (0.5 + Math.random() * 0.5)),
     carrierTimer: def.carrier ? def.carrier.interval * 0.5 : 0,
-    launched: [], dead: false, flash: 0, vx: def.speed * dir,
+    launched: [], dead: false, flash: 0, vx: def.speed * dir, divePhase: 'cruise',
   };
   b.units.push(u);
   return u;
@@ -99,7 +99,7 @@ function findTargetByUid(b: Battle, uid: number, side: Side): TargetInfo | null 
   return null;
 }
 
-function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, target: TargetInfo, dmgBonus = 1) {
+function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, target: TargetInfo, dmgBonus = 1, vel?: { vx: number; vy: number }) {
   const dir = side === 'player' ? 1 : -1;
   const tof = Math.abs(target.x - ox) / weapon.projSpeed || 0.3;
   const aimX = target.x + target.vx * tof * 0.8;
@@ -161,8 +161,8 @@ function fire(b: Battle, side: Side, ox: number, oy: number, weapon: WeaponDef, 
       break;
     }
     case 'bomb': {
-      p.vx = dir * 20;
-      p.vy = 0;
+      p.vx = vel ? vel.vx : dir * 20;
+      p.vy = vel ? vel.vy : 0;
       break;
     }
     case 'depthcharge': {
@@ -346,6 +346,15 @@ function unitWeaponFire(b: Battle, u: Unit, dt: number) {
     const w = WEAPONS[u.def.weapons[i]];
     const target = pickTarget(b, u.side, u.x, w);
     if (!target) { u.reloads[i] = 0.25; continue; }
+    if (w.kind === 'bomb' && u.def.dive) {
+      // dive bombers only release at the bottom of an attack run, leading the target
+      const lead = target.x + target.vx * 0.4 - (u.x + u.vx * 0.42);
+      if (u.divePhase !== 'dive' || u.y < SEA_Y - 105 || Math.abs(lead) > 34) continue;
+      fire(b, u.side, u.x, u.y + 6, w, target, u.side === 'player' ? lvlMult(u.def.id) : 1, { vx: u.vx, vy: u.def.speed * 1.8 });
+      u.reloads[i] = w.reload * (u.side === 'player' ? b.reloadMult() : b.enemyNation.reload);
+      u.divePhase = 'climb';
+      continue;
+    }
     // bombs need to be roughly above target
     if (w.kind === 'bomb' && Math.abs(target.x - u.x) > w.range) { u.reloads[i] = 0.15; continue; }
     const volley = w.volley ?? 1;
@@ -366,10 +375,37 @@ export function updateUnits(b: Battle, dt: number) {
       // sweep the whole battlefield including over the enemy coast so bombers can strike the base
       const lo = u.side === 'player' ? PLAYER_COAST_X - 60 : 50;
       const hi = u.side === 'player' ? WORLD_W - 50 : ENEMY_COAST_X + 60;
-      if (u.vx > 0 && u.x > hi) u.vx = -def.speed;
-      if (u.vx < 0 && u.x < lo) u.vx = def.speed;
-      u.x += u.vx * dt;
-      u.y = (def.altitude ?? 150) + Math.sin(b.time * 1.7 + u.uid) * 6;
+      const cruiseY = def.altitude ?? 150;
+      if (def.dive && u.divePhase === 'dive') {
+        // attack run: steep descent onto the target
+        u.x += u.vx * dt;
+        u.y += def.speed * 1.8 * dt;
+        if (Math.random() < 0.35) b.effects.wakeTrail(u.x - Math.sign(u.vx) * 10, u.y - 6);
+        if (u.y >= SEA_Y - 45) u.divePhase = 'climb'; // pull out before hitting the water
+      } else if (def.dive && u.divePhase === 'climb') {
+        if (u.vx > 0 && u.x > hi) u.vx = -def.speed;
+        if (u.vx < 0 && u.x < lo) u.vx = def.speed;
+        u.x += u.vx * dt;
+        u.y -= def.speed * 1.3 * dt;
+        if (u.y <= cruiseY) { u.y = cruiseY; u.divePhase = 'cruise'; }
+      } else {
+        if (u.vx > 0 && u.x > hi) u.vx = -def.speed;
+        if (u.vx < 0 && u.x < lo) u.vx = def.speed;
+        u.x += u.vx * dt;
+        u.y = cruiseY + Math.sin(b.time * 1.7 + u.uid) * 6;
+        if (def.dive && u.reloads[0] <= 0) {
+          // bomb is armed: tip into a dive once a target lies ahead at the right distance
+          const w = WEAPONS[def.weapons[0]];
+          const target = pickTarget(b, u.side, u.x, { ...w, range: 320 });
+          if (target) {
+            const dx = target.x + target.vx * 1.2 - u.x;
+            const dist = (SEA_Y - 60 - u.y) / 1.8; // horizontal travel during the descent
+            if (Math.sign(dx || 1) === Math.sign(u.vx) && Math.abs(dx) > dist * 0.5 && Math.abs(dx) < dist + 200) {
+              u.divePhase = 'dive';
+            }
+          }
+        }
+      }
     } else {
       // move toward enemy unless blocked by friendly unit ahead or in weapon range of enemy base
       let blocked = false;
