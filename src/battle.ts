@@ -8,6 +8,10 @@ import {
 import { EraDef, EraId, Projectile, StageDef, Turret, Unit } from './types';
 import { getNation, NATIONS, NationDef } from './nations';
 import { addXp, lvlMult } from './armory';
+import {
+  perkBaseHpMult, perkBaseRegen, perkCostMult, perkDmgMult, perkIncomeMult,
+  perkReloadMult, perkStartBonus, perkTurretHpMult, perkUnitHpMult,
+} from './perks';
 
 export class Battle {
   stage: StageDef;
@@ -60,20 +64,20 @@ export class Battle {
     return true;
   }
 
-  dmgMult(): number { return (1 + this.upDamage * 0.15) * this.nation.dmg; }
+  dmgMult(): number { return (1 + this.upDamage * 0.15) * this.nation.dmg * perkDmgMult(); }
 
-  reloadMult(): number { return (1 - this.upReload * 0.1) * this.nation.reload; }
+  reloadMult(): number { return (1 - this.upReload * 0.1) * this.nation.reload * perkReloadMult(); }
 
-  costOf(def: { cost: number }): number { return Math.round(def.cost * this.nation.cost); }
+  costOf(def: { cost: number }): number { return Math.round(def.cost * this.nation.cost * perkCostMult()); }
 
   constructor(stageId: string) {
     this.stage = stageById(stageId);
     this.era = eraById(this.stage.era as EraId);
     const foes = NATIONS.filter(n => n.id !== this.nation.id);
     this.enemyNation = foes[Math.floor(Math.random() * foes.length)];
-    this.resource = 150;
-    this.playerBaseHp = this.stage.playerBaseHp;
-    this.playerBaseMax = this.stage.playerBaseHp;
+    this.resource = 150 + perkStartBonus();
+    this.playerBaseHp = Math.round(this.stage.playerBaseHp * perkBaseHpMult());
+    this.playerBaseMax = this.playerBaseHp;
     this.enemyBaseHp = this.stage.enemyBaseHp;
     this.enemyBaseMax = this.stage.enemyBaseHp;
     for (const t of this.stage.enemyTurrets) spawnTurret(this, t.defId, 'enemy', t.slot);
@@ -88,7 +92,7 @@ export class Battle {
     if (this.resource < cost || this.result) return false;
     this.resource -= cost;
     const u = spawnUnit(this, defId, 'player');
-    u.maxHp = Math.round(def.hp * this.nation.hp * lvlMult(defId));
+    u.maxHp = Math.round(def.hp * this.nation.hp * lvlMult(defId) * perkUnitHpMult());
     u.hp = u.maxHp;
     this.sound.click();
     return true;
@@ -102,7 +106,7 @@ export class Battle {
     if (this.turrets.some(t => t.side === 'player' && t.slot === slot)) return false;
     this.resource -= cost;
     const tr = spawnTurret(this, defId, 'player', slot);
-    tr.maxHp = Math.round(def.hp * this.nation.hp * lvlMult(defId));
+    tr.maxHp = Math.round(def.hp * this.nation.hp * lvlMult(defId) * perkTurretHpMult());
     tr.hp = tr.maxHp;
     this.sound.click();
     return true;
@@ -120,7 +124,13 @@ export class Battle {
     this.messageTimer = Math.max(0, this.messageTimer - dt);
 
     // passive income
-    this.resource += this.era.income * dt;
+    this.resource += this.era.income * perkIncomeMult() * dt;
+
+    // base repair perk
+    const regen = perkBaseRegen();
+    if (regen > 0 && this.playerBaseHp > 0) {
+      this.playerBaseHp = Math.min(this.playerBaseMax, this.playerBaseHp + regen * dt);
+    }
 
     // scripted waves
     const waves = this.stage.waves;

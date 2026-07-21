@@ -2,10 +2,11 @@ import { Battle } from './battle';
 import { Camera, Input, Loop } from './core';
 import { STAGES, nextStageId } from './data';
 import { Hud } from './hud';
-import { Menu, saveUnlocked } from './menus';
+import { Menu, loadUnlocked, saveUnlocked } from './menus';
 import { renderBattle } from './render';
 import { VIEW_H, VIEW_W } from './types';
 import { t } from './i18n';
+import { PerkDef, perkDesc, perkName, rollChoices, takePerk } from './perks';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -38,6 +39,14 @@ let hud = new Hud();
 let paused = false;
 let muteToggled = false;
 let unlockSaved = false;
+let perkChoices: PerkDef[] | null = null;
+
+const PERK_PANEL = { x: 160, y: 410, w: 960, h: 230 };
+function perkCardRect(i: number): [number, number, number, number] {
+  const cw = 296, ch = 150, gap = 18;
+  const x0 = PERK_PANEL.x + (PERK_PANEL.w - (cw * 3 + gap * 2)) / 2;
+  return [x0 + i * (cw + gap), PERK_PANEL.y + 62, cw, ch];
+}
 
 function startStage(stageId: string) {
   battle = new Battle(stageId);
@@ -77,7 +86,28 @@ function update(dt: number) {
   if (battle.result) {
     if (battle.result === 'win' && !unlockSaved) {
       unlockSaved = true;
-      saveUnlocked(STAGES.findIndex(s => s.id === battle!.stage.id) + 1);
+      const idx = STAGES.findIndex(s => s.id === battle!.stage.id) + 1;
+      const firstClear = loadUnlocked() < idx;
+      saveUnlocked(idx);
+      if (firstClear) {
+        const choices = rollChoices(3);
+        if (choices.length) perkChoices = choices;
+      }
+    }
+    if (perkChoices) {
+      const click = input.consumeClick();
+      if (click) {
+        for (let i = 0; i < perkChoices.length; i++) {
+          const [x, y, w, h] = perkCardRect(i);
+          if (click[0] >= x && click[0] <= x + w && click[1] >= y && click[1] <= y + h) {
+            takePerk(perkChoices[i].id);
+            perkChoices = null;
+            battle.sound.click();
+            break;
+          }
+        }
+      }
+      return;
     }
     if (input.pressed('Enter') || input.pressed('NumpadEnter')) {
       if (battle.result === 'win') {
@@ -109,6 +139,34 @@ function render() {
   if (!battle) return;
   renderBattle(ctx, battle, camera);
   hud.render(ctx, battle, camera);
+  if (battle.result && perkChoices) {
+    ctx.fillStyle = 'rgba(8,10,14,0.96)';
+    ctx.fillRect(PERK_PANEL.x, PERK_PANEL.y, PERK_PANEL.w, PERK_PANEL.h);
+    ctx.strokeStyle = '#e8c95c';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(PERK_PANEL.x, PERK_PANEL.y, PERK_PANEL.w, PERK_PANEL.h);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e8c95c';
+    ctx.font = 'bold 20px monospace';
+    ctx.fillText(t('perkTitle'), VIEW_W / 2, PERK_PANEL.y + 32);
+    ctx.fillStyle = '#999';
+    ctx.font = '13px monospace';
+    ctx.fillText(t('perkHint'), VIEW_W / 2, PERK_PANEL.y + 52);
+    for (let i = 0; i < perkChoices.length; i++) {
+      const [x, y, w, h] = perkCardRect(i);
+      ctx.fillStyle = '#14181f';
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#5a6472';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = '#e8e6e0';
+      ctx.font = 'bold 18px monospace';
+      ctx.fillText(perkName(perkChoices[i]), x + w / 2, y + 52);
+      ctx.fillStyle = '#aab4c0';
+      ctx.font = '13px monospace';
+      ctx.fillText(perkDesc(perkChoices[i]), x + w / 2, y + 88);
+    }
+  }
   if (paused && !battle.result) {
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);

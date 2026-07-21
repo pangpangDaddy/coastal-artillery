@@ -1,6 +1,7 @@
 import type { Battle } from './battle';
 import { lvlMult } from './armory';
 import { UNITS, WEAPONS, TURRETS } from './data';
+import { perkBountyMult } from './perks';
 import {
   ENEMY_COAST_X, Layer, PLAYER_COAST_X, Projectile, SEA_Y, Side, SUB_Y,
   Turret, Unit, WeaponDef, WORLD_W,
@@ -189,7 +190,7 @@ function applyDamage(b: Battle, p: Projectile, ex: number, ey: number, hitBase =
         if (u.def.layer === 'sea') b.effects.waterSplash(u.x, 2);
         b.sound.explosion(u.def.boss || u.def.size > 1.2);
         if (p.side === 'player') {
-          b.resource += u.def.bounty;
+          b.resource += Math.round(u.def.bounty * perkBountyMult());
           b.score += u.def.bounty;
         }
       }

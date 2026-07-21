@@ -57,6 +57,8 @@ const UI: Record<string, [string, string]> = {
   xpEarned: ['XP earned', '获得经验'],
   lockedEquip: ['LOCKED — unlock in Armory', '未解锁 — 前往装备库购买'],
   vsLabel: ['vs', '对阵'],
+  perkTitle: ['FIRST CLEAR — choose a campaign perk', '首次通关 — 选择一项战役强化'],
+  perkHint: ['Perks last for the whole campaign', '强化在整个战役中永久生效'],
 };
 
 export function t(key: keyof typeof UI): string {

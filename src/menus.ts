@@ -3,6 +3,7 @@ import { lang, nameOf, t, toggleLang } from './i18n';
 import { getNation, NATIONS, setNation } from './nations';
 import { buyEquip, buyPrice, getXp, isOwned, levelOf, LEVEL_MAX, upgradeEquip, upgradePrice } from './armory';
 import { drawUnitSilhouette } from './silhouettes';
+import { ownedPerks, perkName } from './perks';
 import { VIEW_H, VIEW_W } from './types';
 
 const ERA_THEME: Record<string, { accent: string; dim: string; panel: string; flagship: string; escort: string }> = {
@@ -234,6 +235,13 @@ export class Menu {
     ctx.fillStyle = '#5a5f68';
     ctx.font = '13px monospace';
     ctx.fillText(t('controlsMenu'), VIEW_W / 2, VIEW_H - 40);
+
+    const perks = ownedPerks();
+    if (perks.length) {
+      ctx.fillStyle = '#b89a3e';
+      ctx.font = '12px monospace';
+      ctx.fillText(perks.map(p => perkName(p)).join(' · '), VIEW_W / 2, VIEW_H - 20);
+    }
   }
 
   private renderArmory(ctx: CanvasRenderingContext2D) {
