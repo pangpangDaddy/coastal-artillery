@@ -16,8 +16,14 @@ function barrel(ctx: Ctx, x: number, y: number, len: number, angle: number, w = 
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
-  ctx.fillRect(0, -w / 2, len, w);
+  poly(ctx, [[0, -w / 2], [len, -w * 0.32], [len, w * 0.32], [0, w / 2]]);
   ctx.restore();
+}
+
+// side-profile suggestion of a multi-gun heavy turret: two parallel barrels
+function barrel2(ctx: Ctx, x: number, y: number, len: number, angle: number, w = 2.5) {
+  barrel(ctx, x, y - 1.2, len, angle, w);
+  barrel(ctx, x, y + 1.2, len, angle, w);
 }
 
 function ellipse(ctx: Ctx, x: number, y: number, rx: number, ry: number) {
@@ -275,6 +281,66 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     poly(ctx, [[-50, -1], [-58, 9], [-54, -1]]);
     // seven-blade prop hint
     ellipse(ctx, -57, -2.5, 1.6, 4);
+  },
+  // BOSS Yamato (1941): massive beamy hull, three triple 46cm turrets, iconic seven-tier pagoda tower bridge
+  yamato(ctx, aim = -0.1) {
+    poly(ctx, [[-58, -13], [54, -13], [70, -7], [68, -3], [60, 9], [-50, 9], [-56, 0]]);
+    // flared clipper bow with bulbous forefoot
+    poly(ctx, [[54, -13], [70, -7], [68, -3], [56, -3]]);
+    ellipse(ctx, 66, 2, 4, 3);
+    // A + B superfiring triple turrets fore
+    poly(ctx, [[30, -13], [47, -13], [45, -21], [32, -21]]);
+    barrel2(ctx, 44, -17, 26, aim, 2.6);
+    poly(ctx, [[18, -21], [33, -21], [31, -28], [20, -28]]);
+    barrel2(ctx, 30, -24, 24, aim, 2.6);
+    // Y triple turret aft
+    poly(ctx, [[-46, -13], [-29, -13], [-31, -21], [-44, -21]]);
+    barrel2(ctx, -42, -17, 24, Math.PI + 0.1, 2.6);
+    // seven-tier pagoda tower bridge
+    rect(ctx, 0, -20, 12, 7);
+    rect(ctx, 1, -26, 10, 6);
+    rect(ctx, 2, -31, 8, 5);
+    rect(ctx, 3, -35, 6, 4);
+    rect(ctx, 4, -39, 4.5, 4);
+    rect(ctx, 5, -43, 3, 4);
+    rect(ctx, 5.8, -50, 1.4, 7);
+    // twin raked funnels aft of the pagoda
+    poly(ctx, [[-10, -28], [-3, -28], [-1, -13], [-8, -13]]);
+    poly(ctx, [[-20, -26], [-13, -26], [-11, -13], [-18, -13]]);
+    // aft superstructure + secondary guns
+    rect(ctx, -28, -18, 8, 5);
+    barrel(ctx, -25, -16, 10, Math.PI + 0.2, 1.5);
+    barrel(ctx, 16, -14, 10, 0.2, 1.5);
+    // waterline belt armor hint
+    rect(ctx, -46, -4, 100, 1.4);
+  },
+  // BOSS nuclear supercarrier: angled flight deck, small aft island, CIWS sponsons, parked jets
+  supercarrier(ctx) {
+    poly(ctx, [[-56, -9], [54, -9], [64, -4], [58, 7], [-50, 7], [-56, 0]]);
+    // hangar side with elevator openings
+    rect(ctx, -54, -12, 112, 3);
+    rect(ctx, -34, -12, 12, 3);
+    rect(ctx, 6, -12, 12, 3);
+    // flight deck: long overhang + angled deck sponson aft
+    poly(ctx, [[-66, -17], [58, -17], [68, -13], [66, -11], [-68, -11]]);
+    poly(ctx, [[-68, -17], [-40, -17], [-72, -8], [-66, -8]]);
+    // compact island well aft with phased-array faces and mast
+    rect(ctx, 30, -30, 16, 13);
+    rect(ctx, 32, -36, 12, 6);
+    poly(ctx, [[34, -36], [44, -36], [42, -46], [36, -46]]);
+    rect(ctx, 38, -52, 1.5, 6);
+    rect(ctx, 34, -44, 10, 1.4);
+    // CIWS + sea-sparrow sponsons on deck edge
+    ellipse(ctx, 56, -18, 4, 3);
+    barrel(ctx, 58, -19, 10, -0.4, 1.6);
+    ellipse(ctx, -60, -18, 4, 3);
+    barrel(ctx, -58, -19, 10, Math.PI + 0.4, 1.6);
+    // parked jets on the bow and waist
+    poly(ctx, [[-52, -17], [-42, -17], [-44, -21], [-50, -21]]);
+    rect(ctx, -48, -22.5, 5, 1.5);
+    poly(ctx, [[-12, -17], [-2, -17], [-4, -21], [-10, -21]]);
+    rect(ctx, -8, -22.5, 5, 1.5);
+    poly(ctx, [[16, -17], [26, -17], [24, -21], [18, -21]]);
   },
 };
 

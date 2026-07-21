@@ -418,15 +418,32 @@ export function updateUnits(b: Battle, dt: number) {
     } else {
       // move toward enemy unless blocked by a friendly unit ahead in the same lane or at the lane's stop line
       let blocked = false;
+      let nearestAhead = Infinity;
+      let blockerSize = def.size;
       for (const o of b.units) {
         if (o === u || o.dead || o.side !== u.side || o.def.layer !== def.layer || o.lane !== u.lane) continue;
         const ahead = dir === 1 ? o.x > u.x : o.x < u.x;
-        if (ahead && Math.abs(o.x - u.x) < (o.def.size + def.size) * 34) { blocked = true; break; }
+        const d = Math.abs(o.x - u.x);
+        if (ahead && d < (o.def.size + def.size) * 34 && d < nearestAhead) {
+          blocked = true; nearestAhead = d; blockerSize = o.def.size;
+        }
       }
-      const stopDist = 240 + u.lane * 70;
+      // stop line derived from the unit's own sea-weapon range so every ship can hit the base
+      let seaRange = 0;
+      for (const wid of def.weapons) {
+        const w = WEAPONS[wid];
+        if (w.targets.includes('sea')) seaRange = Math.max(seaRange, w.range);
+      }
+      const stopDist = Math.min(240 + u.lane * 70, (seaRange > 0 ? seaRange : 280) - 40);
       const stopX = dir === 1 ? ENEMY_COAST_X - stopDist : PLAYER_COAST_X + stopDist;
       const atLimit = dir === 1 ? u.x >= stopX : u.x <= stopX;
-      if (!blocked && !atLimit) u.x += def.speed * dir * dt;
+      if (!blocked && !atLimit) {
+        u.x += def.speed * dir * dt;
+      } else if (blocked && nearestAhead > (blockerSize + def.size) * 22) {
+        // queued behind a friendly and out of range: creep forward until we can shoot
+        const hasTarget = def.weapons.some(wid => pickTarget(b, u.side, u.x, WEAPONS[wid]) !== null);
+        if (!hasTarget) u.x += def.speed * dir * dt * 0.35;
+      }
       if (def.layer === 'sea' && Math.random() < 0.15) b.effects.wakeTrail(u.x - dir * 30 * def.size, SEA_Y + 4);
       if (def.layer === 'sea' && def.size >= 1.1 && Math.random() < 0.06) {
         b.effects.funnelSmoke(u.x - dir * 6, u.y - 30 * def.size);

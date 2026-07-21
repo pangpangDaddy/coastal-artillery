@@ -63,7 +63,7 @@ export const UNITS: Record<string, UnitDef> = {
   fighter_ww2: { id: 'fighter_ww2', name: 'Fighter', era: 'ww2', layer: 'air', cost: 210, hp: 210, speed: 130, weapons: ['fighter_mg', 'light_bombs'], silhouette: 'fighter', bounty: 105, size: 0.7, altitude: 140, desc: 'Dogfighter with light bombs' },
   dive_bomber: { id: 'dive_bomber', name: 'Dive Bomber', era: 'ww2', layer: 'air', cost: 260, hp: 230, speed: 115, weapons: ['heavy_bombs'], silhouette: 'divebomber', bounty: 130, size: 0.8, altitude: 165, dive: true, desc: 'Dives onto ships to release its heavy bomb' },
   torpedo_bomber: { id: 'torpedo_bomber', name: 'Torpedo Bomber', era: 'ww2', layer: 'air', cost: 310, hp: 240, speed: 110, weapons: ['air_torpedo'], silhouette: 'bomber', bounty: 160, size: 0.9, altitude: 180, desc: 'Ship-killer from the sky' },
-  boss_yamato: { id: 'boss_yamato', name: 'Yamato-class', era: 'ww2', layer: 'sea', cost: 0, hp: 5600, speed: 17, weapons: ['big_gun', 'big_gun', 'big_gun', 'aa_gun_ww2', 'aa_gun_ww2'], silhouette: 'dreadnought', bounty: 1500, size: 2.3, desc: 'BOSS', boss: true },
+  boss_yamato: { id: 'boss_yamato', name: 'Yamato-class', era: 'ww2', layer: 'sea', cost: 0, hp: 5600, speed: 17, weapons: ['big_gun', 'big_gun', 'big_gun', 'aa_gun_ww2', 'aa_gun_ww2'], silhouette: 'yamato', bounty: 1500, size: 2.3, desc: 'BOSS', boss: true },
 
   // ---- Modern 2026 ----
   lcs: { id: 'lcs', name: 'Littoral Ship', era: 'modern', layer: 'sea', cost: 210, hp: 440, speed: 64, weapons: ['gun_mod', 'ciws'], silhouette: 'lcs', bounty: 110, size: 0.9, desc: 'Fast multi-role combat ship' },
@@ -72,7 +72,7 @@ export const UNITS: Record<string, UnitDef> = {
   nuke_sub: { id: 'nuke_sub', name: 'Nuclear Sub', era: 'modern', layer: 'sub', cost: 430, hp: 540, speed: 38, weapons: ['torpedo_mod', 'torpedo_mod'], silhouette: 'nuke_sub', bounty: 230, size: 1.2, desc: 'Silent heavy torpedo hunter' },
   jet_fighter: { id: 'jet_fighter', name: 'Jet Fighter', era: 'modern', layer: 'air', cost: 330, hp: 270, speed: 195, weapons: ['aam', 'fighter_mg'], silhouette: 'jet', bounty: 170, size: 0.8, altitude: 130, desc: 'Supersonic air superiority' },
   uav: { id: 'uav', name: 'Strike UAV', era: 'modern', layer: 'air', cost: 270, hp: 170, speed: 120, weapons: ['drone_missile'], silhouette: 'uav', bounty: 140, size: 0.7, altitude: 190, desc: 'Precision standoff missile drone' },
-  boss_carrier: { id: 'boss_carrier', name: 'Supercarrier', era: 'modern', layer: 'sea', cost: 0, hp: 7400, speed: 20, weapons: ['ciws', 'ciws', 'vls_antiship'], silhouette: 'carrier', bounty: 2200, size: 2.4, desc: 'BOSS', boss: true, carrier: { unitId: 'jet_fighter', interval: 11, maxAlive: 3 } },
+  boss_carrier: { id: 'boss_carrier', name: 'Supercarrier', era: 'modern', layer: 'sea', cost: 0, hp: 7400, speed: 20, weapons: ['ciws', 'ciws', 'vls_antiship'], silhouette: 'supercarrier', bounty: 2200, size: 2.4, desc: 'BOSS', boss: true, carrier: { unitId: 'jet_fighter', interval: 11, maxAlive: 3 } },
 };
 
 export const TURRETS: Record<string, TurretDef> = {
