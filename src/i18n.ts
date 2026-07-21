@@ -78,6 +78,8 @@ const ZH_NAMES: Record<string, string> = {
   // turrets
   howitzer_ww1: '岸防榴弹炮', aa_nest_ww1: '高射机枪巢', coastal_ww2: '岸防炮台',
   flak88: '88毫米高炮', asm_mod: '岸舰导弹', ciws_mod: '近防炮',
+  mortar_ww1: '反潜臼炮', railway_ww1: '列车重炮', hedgehog_ww2: '刺猬弹阵地',
+  battery_16in: '16英寸要塞炮', asroc_mod: '反潜导弹', railgun_mod: '电磁轨道炮',
   // eras
   ww1: '第一次世界大战', ww2: '第二次世界大战', modern: '现代战争',
   // stages
@@ -96,6 +98,8 @@ const ZH_DESCS: Record<string, string> = {
   nuke_sub: '无声的重鱼雷猎手', jet_fighter: '超音速制空战机', uav: '防区外精确打击无人机',
   howitzer_ww1: '远程反舰火炮', aa_nest_ww1: '速射防空机枪', coastal_ww2: '重型炮廓火炮',
   flak88: '致命防空炮', asm_mod: '反舰导弹阵地，射程极远', ciws_mod: '近程防空武器系统',
+  mortar_ww1: '向U艇抛射深水炸弹', railway_ww1: '巨型炮弹轰击全图', hedgehog_ww2: '反潜刺猬弹投射阵列',
+  battery_16in: '要塞巨炮，射程毁灭性', asroc_mod: '火箭助飞鱼雷反潜', railgun_mod: '超高速弹丸，射程最远',
 };
 
 export function nameOf(id: string, fallback: string): string {

@@ -17,8 +17,14 @@ function playStage(stageId: string, maxSeconds = 900) {
   let unitIdx = 0;
   while (!b.result && b.time < maxSeconds) {
     b.update(dt);
-    // turrets: fill first two slots, cheaper turret first for faster defense
-    const turretOrder = [...b.stage.playerTurrets].sort((a, z) => TURRETS[a].cost - TURRETS[z].cost);
+    // turrets: one anti-ship turret first, then the cheapest other
+    const antiShip = [...b.stage.playerTurrets]
+      .filter(id => TURRETS[id].weapons.some(w => WEAPONS[w].targets.includes('sea')))
+      .sort((a, z) => TURRETS[a].cost - TURRETS[z].cost);
+    const others = [...b.stage.playerTurrets]
+      .filter(id => !antiShip.includes(id))
+      .sort((a, z) => TURRETS[a].cost - TURRETS[z].cost);
+    const turretOrder = antiShip.length ? [antiShip[0], ...(others.length ? others : antiShip.slice(1))] : others;
     if (turretSlot < 2) {
       const tDef = turretOrder[Math.min(turretSlot, turretOrder.length - 1)];
       if (b.resource >= TURRETS[tDef].cost && b.buyTurret(tDef, turretSlot)) turretSlot++;

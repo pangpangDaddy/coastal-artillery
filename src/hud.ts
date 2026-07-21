@@ -8,8 +8,8 @@ import { inRadar } from './core';
 import { nameOf, shortName, t, lang } from './i18n';
 import { isOwned, levelOf } from './armory';
 
-const BTN = 64;
-const BTN_GAP = 8;
+const BTN = 56;
+const BTN_GAP = 6;
 
 export interface HudState {
   selectedTurret: string | null;

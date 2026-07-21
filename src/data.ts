@@ -7,6 +7,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   heavy_gun: { id: 'heavy_gun', targets: ['sea'], range: 470, damage: 95, reload: 6.5, kind: 'shell', projSpeed: 520, splash: 30, vsBaseMult: 1 },
   coast_gun_ww1: { id: 'coast_gun_ww1', targets: ['sea'], range: 540, damage: 85, reload: 5.0, kind: 'shell', projSpeed: 560, splash: 30, vsBaseMult: 0.6 },
   aa_mg: { id: 'aa_mg', targets: ['air'], range: 340, damage: 9, reload: 0.35, kind: 'bullet', projSpeed: 900 },
+  sub_mortar_ww1: { id: 'sub_mortar_ww1', targets: ['sub'], range: 380, damage: 70, reload: 5.5, kind: 'depthcharge', projSpeed: 280, splash: 45 },
+  railway_gun: { id: 'railway_gun', targets: ['sea'], range: 680, damage: 160, reload: 9.0, kind: 'shell', projSpeed: 620, splash: 40, vsBaseMult: 0.5 },
   plane_mg: { id: 'plane_mg', targets: ['air', 'sea'], range: 210, damage: 7, reload: 0.5, kind: 'bullet', projSpeed: 850, vsBaseMult: 0.15 },
   torpedo_ww1: { id: 'torpedo_ww1', targets: ['sea', 'sub'], range: 260, damage: 95, reload: 6.0, kind: 'torpedo', projSpeed: 150, splash: 12, vsBaseMult: 0.25 },
   bombs_ww1: { id: 'bombs_ww1', targets: ['sea'], range: 130, damage: 80, reload: 5.0, kind: 'bomb', projSpeed: 0, splash: 42, vsBaseMult: 0.6 },
@@ -26,6 +28,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   air_torpedo: { id: 'air_torpedo', targets: ['sea'], range: 320, damage: 135, reload: 6.0, kind: 'torpedo', projSpeed: 180, splash: 14, vsBaseMult: 0.4 },
   heavy_bombs: { id: 'heavy_bombs', targets: ['sea'], range: 130, damage: 110, reload: 5.5, kind: 'bomb', projSpeed: 0, splash: 40, vsBaseMult: 0.8 },
   pt_gun: { id: 'pt_gun', targets: ['sea', 'air'], range: 220, damage: 10, reload: 0.6, kind: 'bullet', projSpeed: 880, vsBaseMult: 0.2 },
+  hedgehog: { id: 'hedgehog', targets: ['sub'], range: 400, damage: 80, reload: 5.0, kind: 'depthcharge', projSpeed: 300, splash: 50 },
+  gun_16in: { id: 'gun_16in', targets: ['sea'], range: 720, damage: 200, reload: 10.0, kind: 'shell', projSpeed: 640, splash: 44, vsBaseMult: 0.5 },
 
   // ---- Modern ----
   gun_mod: { id: 'gun_mod', targets: ['sea'], range: 330, damage: 26, reload: 1.2, kind: 'shell', projSpeed: 640, splash: 12, vsBaseMult: 0.5 },
@@ -36,6 +40,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
   torpedo_mod: { id: 'torpedo_mod', targets: ['sea', 'sub'], range: 330, damage: 160, reload: 7.0, kind: 'torpedo', projSpeed: 210, splash: 16, vsBaseMult: 0.25 },
   aam: { id: 'aam', targets: ['air'], range: 430, damage: 30, reload: 1.5, kind: 'missile', projSpeed: 780 },
   drone_missile: { id: 'drone_missile', targets: ['sea'], range: 310, damage: 70, reload: 4.0, kind: 'missile', projSpeed: 560, splash: 20, vsBaseMult: 0.8 },
+  railgun: { id: 'railgun', targets: ['sea'], range: 800, damage: 170, reload: 7.0, kind: 'shell', projSpeed: 1000, splash: 20, vsBaseMult: 0.6 },
 };
 
 export const UNITS: Record<string, UnitDef> = {
@@ -73,27 +78,33 @@ export const UNITS: Record<string, UnitDef> = {
 export const TURRETS: Record<string, TurretDef> = {
   howitzer_ww1: { id: 'howitzer_ww1', name: 'Coast Howitzer', era: 'ww1', cost: 260, hp: 620, weapons: ['coast_gun_ww1'], silhouette: 'turret_gun', desc: 'Long-range anti-ship artillery' },
   aa_nest_ww1: { id: 'aa_nest_ww1', name: 'AA MG Nest', era: 'ww1', cost: 150, hp: 320, weapons: ['aa_mg', 'aa_mg'], silhouette: 'turret_aa', desc: 'Rapid anti-air machine guns' },
+  mortar_ww1: { id: 'mortar_ww1', name: 'ASW Mortar', era: 'ww1', cost: 200, hp: 400, weapons: ['sub_mortar_ww1'], silhouette: 'turret_gun', desc: 'Lobs depth bombs at U-boats' },
+  railway_ww1: { id: 'railway_ww1', name: 'Railway Gun', era: 'ww1', cost: 480, hp: 520, weapons: ['railway_gun'], silhouette: 'turret_gun', desc: 'Massive shells across the map' },
   coastal_ww2: { id: 'coastal_ww2', name: 'Coastal Artillery', era: 'ww2', cost: 310, hp: 720, weapons: ['coast_gun_ww2'], silhouette: 'turret_gun', desc: 'Heavy casemate gun' },
   flak88: { id: 'flak88', name: 'Flak 88', era: 'ww2', cost: 210, hp: 360, weapons: ['flak'], silhouette: 'turret_aa', desc: 'Deadly anti-air cannon' },
+  hedgehog_ww2: { id: 'hedgehog_ww2', name: 'Hedgehog Battery', era: 'ww2', cost: 240, hp: 450, weapons: ['hedgehog'], silhouette: 'turret_gun', desc: 'Anti-submarine projector array' },
+  battery_16in: { id: 'battery_16in', name: '16in Battery', era: 'ww2', cost: 520, hp: 600, weapons: ['gun_16in'], silhouette: 'turret_gun', desc: 'Fortress guns, devastating range' },
   asm_mod: { id: 'asm_mod', name: 'ASM Launcher', era: 'modern', cost: 420, hp: 620, weapons: ['asm_turret'], silhouette: 'turret_missile', desc: 'Anti-ship missile battery, extreme range' },
   ciws_mod: { id: 'ciws_mod', name: 'CIWS', era: 'modern', cost: 300, hp: 420, weapons: ['ciws'], silhouette: 'turret_ciws', desc: 'Close-in weapon system vs aircraft' },
+  asroc_mod: { id: 'asroc_mod', name: 'ASROC Site', era: 'modern', cost: 340, hp: 480, weapons: ['asroc'], silhouette: 'turret_missile', desc: 'Rocket-thrown torpedoes vs subs' },
+  railgun_mod: { id: 'railgun_mod', name: 'Railgun', era: 'modern', cost: 560, hp: 650, weapons: ['railgun'], silhouette: 'turret_gun', desc: 'Hypervelocity slugs, longest range' },
 };
 
 export const ERAS: EraDef[] = [
   {
     id: 'ww1', name: 'The Great War', years: '1914 — 1918',
     units: ['gunboat', 'cruiser_ww1', 'dreadnought', 'uboat', 'biplane', 'zeppelin'],
-    turrets: ['howitzer_ww1', 'aa_nest_ww1'], bossUnit: 'boss_dreadnought', income: 13,
+    turrets: ['howitzer_ww1', 'aa_nest_ww1', 'mortar_ww1', 'railway_ww1'], bossUnit: 'boss_dreadnought', income: 13,
   },
   {
     id: 'ww2', name: 'World War II', years: '1939 — 1945',
     units: ['pt_boat', 'destroyer', 'cruiser_ww2', 'battleship', 'carrier', 'submarine_ww2', 'fighter_ww2', 'dive_bomber', 'torpedo_bomber'],
-    turrets: ['coastal_ww2', 'flak88'], bossUnit: 'boss_yamato', income: 14,
+    turrets: ['coastal_ww2', 'flak88', 'hedgehog_ww2', 'battery_16in'], bossUnit: 'boss_yamato', income: 14,
   },
   {
     id: 'modern', name: 'Modern Warfare', years: '2026',
     units: ['lcs', 'missile_destroyer', 'aegis_cruiser', 'nuke_sub', 'jet_fighter', 'uav'],
-    turrets: ['asm_mod', 'ciws_mod'], bossUnit: 'boss_carrier', income: 15,
+    turrets: ['asm_mod', 'ciws_mod', 'asroc_mod', 'railgun_mod'], bossUnit: 'boss_carrier', income: 15,
   },
 ];
 
@@ -116,7 +127,7 @@ export const STAGES: StageDef[] = [
     enemyPool: ['gunboat', 'cruiser_ww1', 'uboat', 'biplane'],
     enemyTurrets: [{ defId: 'howitzer_ww1', slot: 2 }],
     playerUnits: ['gunboat', 'uboat', 'dreadnought', 'zeppelin'],
-    playerTurrets: ['howitzer_ww1', 'aa_nest_ww1'],
+    playerTurrets: ['howitzer_ww1', 'aa_nest_ww1', 'mortar_ww1'],
     waves: [
       { at: 8, units: ['gunboat', 'gunboat'] },
       { at: 50, units: ['uboat'] },
@@ -129,7 +140,7 @@ export const STAGES: StageDef[] = [
     enemyPool: ['cruiser_ww1', 'dreadnought', 'uboat', 'biplane', 'zeppelin'],
     enemyTurrets: [{ defId: 'howitzer_ww1', slot: 1 }, { defId: 'aa_nest_ww1', slot: 3 }],
     playerUnits: ['gunboat', 'cruiser_ww1', 'dreadnought', 'uboat', 'biplane', 'zeppelin'],
-    playerTurrets: ['howitzer_ww1', 'aa_nest_ww1'],
+    playerTurrets: ['howitzer_ww1', 'aa_nest_ww1', 'mortar_ww1', 'railway_ww1'],
     waves: [
       { at: 8, units: ['cruiser_ww1', 'gunboat'] },
       { at: 60, units: ['uboat', 'biplane'] },
@@ -155,7 +166,7 @@ export const STAGES: StageDef[] = [
     enemyPool: ['destroyer', 'submarine_ww2', 'submarine_ww2', 'fighter_ww2', 'torpedo_bomber'],
     enemyTurrets: [{ defId: 'coastal_ww2', slot: 2 }, { defId: 'flak88', slot: 3 }],
     playerUnits: ['destroyer', 'cruiser_ww2', 'submarine_ww2', 'fighter_ww2', 'dive_bomber'],
-    playerTurrets: ['coastal_ww2', 'flak88'],
+    playerTurrets: ['coastal_ww2', 'flak88', 'hedgehog_ww2'],
     waves: [
       { at: 25, units: ['submarine_ww2', 'submarine_ww2'] },
       { at: 55, units: ['destroyer', 'fighter_ww2'] },
@@ -168,7 +179,7 @@ export const STAGES: StageDef[] = [
     enemyPool: ['destroyer', 'cruiser_ww2', 'battleship', 'submarine_ww2', 'fighter_ww2', 'torpedo_bomber', 'carrier'],
     enemyTurrets: [{ defId: 'coastal_ww2', slot: 1 }, { defId: 'flak88', slot: 2 }, { defId: 'flak88', slot: 3 }],
     playerUnits: ['pt_boat', 'destroyer', 'cruiser_ww2', 'battleship', 'carrier', 'submarine_ww2', 'fighter_ww2', 'dive_bomber', 'torpedo_bomber'],
-    playerTurrets: ['coastal_ww2', 'flak88'],
+    playerTurrets: ['coastal_ww2', 'flak88', 'hedgehog_ww2', 'battery_16in'],
     waves: [
       { at: 8, units: ['destroyer', 'fighter_ww2'] },
       { at: 60, units: ['carrier'] },
@@ -194,7 +205,7 @@ export const STAGES: StageDef[] = [
     enemyPool: ['lcs', 'missile_destroyer', 'nuke_sub', 'uav'],
     enemyTurrets: [{ defId: 'asm_mod', slot: 2 }, { defId: 'ciws_mod', slot: 3 }],
     playerUnits: ['lcs', 'missile_destroyer', 'nuke_sub', 'uav'],
-    playerTurrets: ['asm_mod', 'ciws_mod'],
+    playerTurrets: ['asm_mod', 'ciws_mod', 'asroc_mod'],
     waves: [
       { at: 25, units: ['nuke_sub'] },
       { at: 50, units: ['jet_fighter', 'uav'] },
@@ -206,7 +217,7 @@ export const STAGES: StageDef[] = [
     enemyPool: ['lcs', 'missile_destroyer', 'aegis_cruiser', 'nuke_sub', 'jet_fighter', 'uav'],
     enemyTurrets: [{ defId: 'asm_mod', slot: 1 }, { defId: 'ciws_mod', slot: 2 }, { defId: 'ciws_mod', slot: 3 }],
     playerUnits: ['lcs', 'missile_destroyer', 'aegis_cruiser', 'nuke_sub', 'jet_fighter', 'uav'],
-    playerTurrets: ['asm_mod', 'ciws_mod'],
+    playerTurrets: ['asm_mod', 'ciws_mod', 'asroc_mod', 'railgun_mod'],
     waves: [
       { at: 35, units: ['lcs', 'jet_fighter'] },
       { at: 75, units: ['aegis_cruiser'] },
