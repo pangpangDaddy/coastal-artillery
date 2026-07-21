@@ -8,9 +8,14 @@ export class Input {
   clickX = 0;
   clickY = 0;
   leftDown = false;
+  usingTouch = false;
   private wheelAcc = 0;
   private panAcc = 0;
   private panning = false;
+  private touchId: number | null = null;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchDragging = false;
 
   constructor(canvas: HTMLCanvasElement, toLogical: (cx: number, cy: number) => [number, number]) {
     window.addEventListener('keydown', e => {
@@ -24,12 +29,14 @@ export class Input {
       if (this.panning) this.panAcc += lx - this.mouseX;
       this.mouseX = lx;
       this.mouseY = ly;
+      this.usingTouch = false;
     });
     canvas.addEventListener('mousedown', e => {
       const r = canvas.getBoundingClientRect();
       const [lx, ly] = toLogical(e.clientX - r.left, e.clientY - r.top);
       this.mouseX = lx;
       this.mouseY = ly;
+      this.usingTouch = false;
       if (e.button === 0) {
         this.clickX = lx;
         this.clickY = ly;
@@ -49,10 +56,68 @@ export class Input {
       e.preventDefault();
       this.wheelAcc += (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY);
     }, { passive: false });
+
+    const touchPoint = (e: TouchEvent): Touch | null => {
+      for (const t of Array.from(e.changedTouches)) {
+        if (this.touchId === null || t.identifier === this.touchId) return t;
+      }
+      return null;
+    };
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (this.touchId !== null) return;
+      const t = e.changedTouches[0];
+      this.touchId = t.identifier;
+      this.usingTouch = true;
+      const r = canvas.getBoundingClientRect();
+      const [lx, ly] = toLogical(t.clientX - r.left, t.clientY - r.top);
+      this.mouseX = lx;
+      this.mouseY = ly;
+      this.touchStartX = lx;
+      this.touchStartY = ly;
+      this.touchDragging = false;
+      // radar scrubbing reuses the mouse leftDown path
+      if (inRadar(lx, ly)) this.leftDown = true;
+    }, { passive: false });
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const t = touchPoint(e);
+      if (!t || this.touchId === null) return;
+      const r = canvas.getBoundingClientRect();
+      const [lx, ly] = toLogical(t.clientX - r.left, t.clientY - r.top);
+      if (!this.leftDown) {
+        if (!this.touchDragging &&
+            Math.hypot(lx - this.touchStartX, ly - this.touchStartY) > 12) {
+          this.touchDragging = true;
+        }
+        if (this.touchDragging) this.panAcc += lx - this.mouseX;
+      }
+      this.mouseX = lx;
+      this.mouseY = ly;
+    }, { passive: false });
+    const touchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      const t = touchPoint(e);
+      if (!t || this.touchId === null) return;
+      this.touchId = null;
+      const wasRadar = this.leftDown;
+      this.leftDown = false;
+      if (!this.touchDragging && !wasRadar) {
+        this.clickX = this.touchStartX;
+        this.clickY = this.touchStartY;
+        this.clicked = true;
+      }
+      this.touchDragging = false;
+    };
+    canvas.addEventListener('touchend', touchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', touchEnd, { passive: false });
+
     window.addEventListener('blur', () => {
       this.keys.clear();
       this.leftDown = false;
       this.panning = false;
+      this.touchId = null;
+      this.touchDragging = false;
     });
   }
 
@@ -104,8 +169,8 @@ export class Camera {
     if (input.pressed('ArrowLeft') || input.pressed('KeyA')) { this.x -= speed * dt; manual = true; }
     if (input.pressed('ArrowRight') || input.pressed('KeyD')) { this.x += speed * dt; manual = true; }
 
-    // edge scroll (disabled while cursor is over the HUD panel)
-    if (input.mouseY < VIEW_H - HUD_H) {
+    // edge scroll (disabled while cursor is over the HUD panel or on touch devices)
+    if (!input.usingTouch && input.mouseY < VIEW_H - HUD_H) {
       if (input.mouseX < 36) { this.x -= speed * 0.8 * dt; manual = true; }
       if (input.mouseX > VIEW_W - 36) { this.x += speed * 0.8 * dt; manual = true; }
     }

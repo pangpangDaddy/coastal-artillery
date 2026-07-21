@@ -282,6 +282,82 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     // seven-blade prop hint
     ellipse(ctx, -57, -2.5, 1.6, 4);
   },
+  // Iowa-class fast battleship (1943): long clipper bow, three triple 16" turrets, compact tower + twin funnels
+  battleship_ww2(ctx, aim = -0.1) {
+    poly(ctx, [[-52, -11], [40, -11], [64, -5], [62, -2], [55, 8], [-46, 8], [-50, 0]]);
+    // long fine clipper bow sheer line
+    poly(ctx, [[40, -11], [64, -5], [62, -2], [42, -6]]);
+    // A + B superfiring triple turrets fore
+    poly(ctx, [[22, -11], [38, -11], [36, -19], [24, -19]]);
+    barrel2(ctx, 35, -15, 24, aim, 2.4);
+    poly(ctx, [[10, -19], [24, -19], [22, -26], [12, -26]]);
+    barrel2(ctx, 21, -22.5, 22, aim, 2.4);
+    // Y turret aft
+    poly(ctx, [[-40, -11], [-24, -11], [-26, -19], [-38, -19]]);
+    barrel2(ctx, -36, -15, 22, Math.PI + 0.1, 2.4);
+    // compact armored tower bridge with fire-control atop
+    rect(ctx, -2, -26, 10, 15);
+    rect(ctx, 0, -32, 6, 6);
+    rect(ctx, 2.3, -40, 1.5, 8);
+    rect(ctx, -1, -35, 8, 1.4);
+    // two raked funnels close together
+    poly(ctx, [[-11, -25], [-5, -25], [-3, -11], [-9, -11]]);
+    poly(ctx, [[-20, -24], [-14, -24], [-12, -11], [-18, -11]]);
+    // secondary 5-inch mounts + AA tubs
+    rect(ctx, 12, -14, 6, 3);
+    barrel(ctx, 15, -13, 9, 0.25, 1.4);
+    rect(ctx, -23, -14, 6, 3);
+    barrel(ctx, -20, -13, 9, Math.PI - 0.25, 1.4);
+  },
+  // BOSS super dreadnought (HMS Agincourt, 1913): flush deck crammed with turrets, two funnels, twin tripod masts
+  super_dreadnought(ctx, aim = -0.1) {
+    poly(ctx, [[-56, -12], [52, -12], [68, -7], [66, -4], [58, 9], [-50, 9], [-54, 0]]);
+    // four visible turrets: superfiring pair fore, pair aft
+    poly(ctx, [[28, -12], [44, -12], [42, -19], [30, -19]]);
+    barrel2(ctx, 41, -16, 24, aim, 2.5);
+    poly(ctx, [[16, -19], [30, -19], [28, -25], [18, -25]]);
+    barrel2(ctx, 27, -22, 22, aim, 2.5);
+    poly(ctx, [[-30, -12], [-16, -12], [-18, -19], [-28, -19]]);
+    barrel2(ctx, -26, -16, 20, Math.PI + 0.1, 2.5);
+    poly(ctx, [[-48, -12], [-34, -12], [-36, -19], [-46, -19]]);
+    barrel2(ctx, -44, -16, 22, Math.PI + 0.1, 2.5);
+    // amidships Q turret between funnels
+    poly(ctx, [[-8, -12], [4, -12], [2, -18], [-6, -18]]);
+    barrel2(ctx, 1, -15, 18, aim, 2.2);
+    // bridge + fore tripod with spotting top
+    rect(ctx, 6, -28, 9, 16);
+    rect(ctx, 9.5, -44, 1.8, 30);
+    poly(ctx, [[9.5, -30], [5, -30], [8.8, -42]]);
+    rect(ctx, 6.5, -42, 8, 4);
+    // two tall capped funnels
+    rect(ctx, -4, -33, 7, 21); rect(ctx, -5, -34, 9, 2);
+    rect(ctx, -14, -31, 7, 19); rect(ctx, -15, -32, 9, 2);
+    // aft tripod mast
+    rect(ctx, -32, -36, 1.6, 17);
+    rect(ctx, -35, -33, 8, 3);
+  },
+  // Gato-class fleet submarine (1942): long low casing, tall shears on the fairwater, deck gun fore + AA aft
+  fleet_sub(ctx) {
+    ellipse(ctx, 0, -3, 48, 7);
+    // long free-flooding deck casing with limber-hole hint
+    poly(ctx, [[-42, -12], [40, -12], [46, -9], [-44, -9]]);
+    rect(ctx, -34, -10.5, 20, 1);
+    rect(ctx, 12, -10.5, 20, 1);
+    // fairwater with covered navigation bridge + tall periscope shears
+    poly(ctx, [[-6, -12], [10, -12], [8, -21], [-4, -21]]);
+    rect(ctx, -1, -26, 4, 5);
+    rect(ctx, 0, -32, 1.4, 7);
+    rect(ctx, 3, -30, 1.4, 5);
+    rect(ctx, 5.8, -28, 1.4, 3);
+    // 4-inch deck gun forward + 40mm AA aft of the sail
+    rect(ctx, 20, -14, 5, 2.5);
+    barrel(ctx, 23, -13.5, 13, -0.12, 1.8);
+    rect(ctx, -14, -13, 4, 2);
+    barrel(ctx, -12, -13, 8, Math.PI - 0.5, 1.2);
+    // bow buoyancy tank + tapered stern
+    poly(ctx, [[44, -9], [54, -4], [46, 1]]);
+    poly(ctx, [[-46, -7], [-54, -2], [-46, 2]]);
+  },
   // BOSS Yamato (1941): massive beamy hull, three triple 46cm turrets, iconic seven-tier pagoda tower bridge
   yamato(ctx, aim = -0.1) {
     poly(ctx, [[-58, -13], [54, -13], [70, -7], [68, -3], [60, 9], [-50, 9], [-56, 0]]);

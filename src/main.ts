@@ -38,6 +38,7 @@ let camera = new Camera();
 let hud = new Hud();
 let paused = false;
 let muteToggled = false;
+let escHeld = false;
 let dcKeyHeld = false;
 let unlockSaved = false;
 let perkChoices: PerkDef[] | null = null;
@@ -52,6 +53,8 @@ function perkCardRect(i: number): [number, number, number, number] {
 const PAUSE_BTN_W = 280, PAUSE_BTN_H = 46;
 const PAUSE_RESUME = { x: VIEW_W / 2 - PAUSE_BTN_W / 2, y: VIEW_H / 2 + 10, w: PAUSE_BTN_W, h: PAUSE_BTN_H };
 const PAUSE_MENU = { x: VIEW_W / 2 - PAUSE_BTN_W / 2, y: VIEW_H / 2 + 70, w: PAUSE_BTN_W, h: PAUSE_BTN_H };
+const TOP_PAUSE = { x: VIEW_W - 96, y: 36, w: 40, h: 40 };
+const TOP_MUTE = { x: VIEW_W - 50, y: 36, w: 40, h: 40 };
 function inPauseBtn(p: [number, number], r: { x: number; y: number; w: number; h: number }): boolean {
   return p[0] >= r.x && p[0] <= r.x + r.w && p[1] >= r.y && p[1] <= r.y + r.h;
 }
@@ -101,7 +104,21 @@ function update(dt: number) {
 
   if (!battle) return;
 
-  if (input.pressed('Escape')) paused = !paused;
+  if (input.pressed('Escape') && !escHeld) { escHeld = true; paused = !paused; }
+  if (!input.pressed('Escape')) escHeld = false;
+
+  // top-right screen buttons (mouse & touch)
+  if (!battle.result && input.clicked) {
+    const p: [number, number] = [input.clickX, input.clickY];
+    if (inPauseBtn(p, TOP_PAUSE)) {
+      input.consumeClick();
+      paused = !paused;
+      battle.sound.click();
+    } else if (inPauseBtn(p, TOP_MUTE)) {
+      input.consumeClick();
+      battle.sound.muted = !battle.sound.muted;
+    }
+  }
 
   if (battle.result) {
     if (battle.result === 'win' && !unlockSaved) {
@@ -129,7 +146,7 @@ function update(dt: number) {
       }
       return;
     }
-    if (input.pressed('Enter') || input.pressed('NumpadEnter')) {
+    if (input.pressed('Enter') || input.pressed('NumpadEnter') || input.consumeClick()) {
       if (battle.result === 'win') {
         const next = nextStageId(battle.stage.id);
         if (next) startStage(next); else backToMenu();
@@ -173,6 +190,47 @@ function render() {
   if (!battle) return;
   renderBattle(ctx, battle, camera);
   hud.render(ctx, battle, camera);
+  if (!battle.result) {
+    for (const r of [TOP_PAUSE, TOP_MUTE]) {
+      ctx.fillStyle = 'rgba(12,12,14,0.7)';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.strokeStyle = '#666';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+    }
+    ctx.fillStyle = '#c9ccd2';
+    // pause icon
+    ctx.fillRect(TOP_PAUSE.x + 13, TOP_PAUSE.y + 11, 5, 18);
+    ctx.fillRect(TOP_PAUSE.x + 22, TOP_PAUSE.y + 11, 5, 18);
+    // speaker icon
+    const mx = TOP_MUTE.x, my = TOP_MUTE.y;
+    ctx.beginPath();
+    ctx.moveTo(mx + 10, my + 16);
+    ctx.lineTo(mx + 16, my + 16);
+    ctx.lineTo(mx + 23, my + 10);
+    ctx.lineTo(mx + 23, my + 30);
+    ctx.lineTo(mx + 16, my + 24);
+    ctx.lineTo(mx + 10, my + 24);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#c9ccd2';
+    ctx.lineWidth = 2;
+    if (battle.sound.muted) {
+      ctx.beginPath();
+      ctx.moveTo(mx + 27, my + 14);
+      ctx.lineTo(mx + 33, my + 26);
+      ctx.moveTo(mx + 33, my + 14);
+      ctx.lineTo(mx + 27, my + 26);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(mx + 24, my + 20, 6, -0.9, 0.9);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(mx + 24, my + 20, 10, -0.9, 0.9);
+      ctx.stroke();
+    }
+  }
   if (battle.result && perkChoices) {
     ctx.fillStyle = 'rgba(8,10,14,0.96)';
     ctx.fillRect(PERK_PANEL.x, PERK_PANEL.y, PERK_PANEL.w, PERK_PANEL.h);
