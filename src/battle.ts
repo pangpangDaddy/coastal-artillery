@@ -42,9 +42,26 @@ export class Battle {
   upDamage = 0;
   upReload = 0;
   xpGained = 0;
+  dcCooldown = 0;
+  dcActive = 0;
 
   static UPGRADE_COSTS = [250, 500, 900];
   static UPGRADE_MAX = 3;
+  static DC_COST = 250;
+  static DC_COOLDOWN = 40;
+  static DC_DURATION = 6;
+  static DC_HEAL = 0.35;
+
+  useDamageControl(): boolean {
+    if (this.result || this.dcCooldown > 0 || this.resource < Battle.DC_COST) return false;
+    this.resource -= Battle.DC_COST;
+    this.dcActive = Battle.DC_DURATION;
+    this.dcCooldown = Battle.DC_COOLDOWN;
+    this.message = t('msgRepair');
+    this.messageTimer = 2.5;
+    this.sound.click();
+    return true;
+  }
 
   upgradeLevel(track: 'damage' | 'reload'): number {
     return track === 'damage' ? this.upDamage : this.upReload;
@@ -130,6 +147,23 @@ export class Battle {
     const regen = perkBaseRegen();
     if (regen > 0 && this.playerBaseHp > 0) {
       this.playerBaseHp = Math.min(this.playerBaseMax, this.playerBaseHp + regen * dt);
+    }
+
+    // damage control: heal-over-time for all friendly units & turrets
+    this.dcCooldown = Math.max(0, this.dcCooldown - dt);
+    if (this.dcActive > 0) {
+      this.dcActive = Math.max(0, this.dcActive - dt);
+      const frac = (Battle.DC_HEAL / Battle.DC_DURATION) * dt;
+      for (const u of this.units) {
+        if (u.side !== 'player' || u.hp <= 0 || u.hp >= u.maxHp) continue;
+        u.hp = Math.min(u.maxHp, u.hp + u.maxHp * frac);
+        if (Math.random() < dt * 6) this.effects.repairSpark(u.x, u.y - 8);
+      }
+      for (const tr of this.turrets) {
+        if (tr.side !== 'player' || tr.hp <= 0 || tr.hp >= tr.maxHp) continue;
+        tr.hp = Math.min(tr.maxHp, tr.hp + tr.maxHp * frac);
+        if (Math.random() < dt * 6) this.effects.repairSpark(tr.x, tr.y - 8);
+      }
     }
 
     // scripted waves

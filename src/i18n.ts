@@ -59,6 +59,9 @@ const UI: Record<string, [string, string]> = {
   vsLabel: ['vs', '对阵'],
   perkTitle: ['FIRST CLEAR — choose a campaign perk', '首次通关 — 选择一项战役强化'],
   perkHint: ['Perks last for the whole campaign', '强化在整个战役中永久生效'],
+  dcBtn: ['REPAIR [R]', '损管 [R]'],
+  dcActive: ['REPAIRING…', '损管作业中…'],
+  msgRepair: ['Damage control parties at work!', '损管队全力抢修！'],
 };
 
 export function t(key: keyof typeof UI): string {

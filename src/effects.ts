@@ -84,6 +84,17 @@ export class Effects {
     });
   }
 
+  repairSpark(x: number, y: number) {
+    for (let i = 0; i < 2; i++) {
+      this.add({
+        x: x + (Math.random() - 0.5) * 18, y: y + (Math.random() - 0.5) * 8,
+        vx: (Math.random() - 0.5) * 14, vy: -26 - Math.random() * 20,
+        life: 0.4 + Math.random() * 0.3, maxLife: 0.7, size: 1.5 + Math.random() * 1.5,
+        color: 'rgba(126,231,135,0.9)', kind: 'spark', gravity: -10,
+      });
+    }
+  }
+
   update(dt: number) {
     this.shake = Math.max(0, this.shake - dt * 26);
     for (const p of this.particles) {

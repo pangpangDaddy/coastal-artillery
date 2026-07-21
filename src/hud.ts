@@ -1,4 +1,4 @@
-import type { Battle } from './battle';
+import { Battle } from './battle';
 import type { Camera, Input } from './core';
 import { TURRETS, UNITS } from './data';
 import { drawTurretIcon, drawUnitSilhouette } from './silhouettes';
@@ -10,6 +10,7 @@ import { isOwned, levelOf } from './armory';
 
 const BTN = 56;
 const BTN_GAP = 6;
+const DC_BTN = { x: 400, y: VIEW_H - HUD_H + 5, w: 170, h: 22 };
 
 export interface HudState {
   selectedTurret: string | null;
@@ -52,6 +53,11 @@ export class Hud {
     if (b.result) return;
     // radar clicks are handled by the camera
     if (inRadar(cx, cy)) return;
+    // damage control button
+    if (cx >= DC_BTN.x && cx <= DC_BTN.x + DC_BTN.w && cy >= DC_BTN.y && cy <= DC_BTN.y + DC_BTN.h) {
+      b.useDamageControl();
+      return;
+    }
     // buttons
     for (const btn of this.buttons) {
       if (cx >= btn.x && cx <= btn.x + BTN && cy >= btn.y && cy <= btn.y + BTN) {
@@ -121,6 +127,31 @@ export class Hud {
     ctx.fillRect(150, VIEW_H - HUD_H + 8, resW * resRatio, 12);
     ctx.fillStyle = '#111';
     ctx.fillText(`${t('res')} ${Math.floor(b.resource)}`, 156, VIEW_H - HUD_H + 18);
+
+    // damage control button
+    {
+      const ready = b.dcCooldown <= 0 && b.resource >= Battle.DC_COST;
+      const active = b.dcActive > 0;
+      ctx.fillStyle = active ? '#1d3324' : ready ? '#1e2126' : '#141518';
+      ctx.fillRect(DC_BTN.x, DC_BTN.y, DC_BTN.w, DC_BTN.h);
+      if (!active && b.dcCooldown > 0) {
+        ctx.fillStyle = '#26292f';
+        const cd = 1 - b.dcCooldown / Battle.DC_COOLDOWN;
+        ctx.fillRect(DC_BTN.x, DC_BTN.y, DC_BTN.w * cd, DC_BTN.h);
+      }
+      ctx.strokeStyle = active ? '#7ee787' : ready ? '#8a8f98' : '#333';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(DC_BTN.x, DC_BTN.y, DC_BTN.w, DC_BTN.h);
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 11px monospace';
+      ctx.fillStyle = active ? '#7ee787' : ready ? '#c9ccd2' : '#555';
+      const label = active
+        ? t('dcActive')
+        : b.dcCooldown > 0
+          ? `${t('dcBtn')} · ${Math.ceil(b.dcCooldown)}s`
+          : `${t('dcBtn')} · ${Battle.DC_COST}`;
+      ctx.fillText(label, DC_BTN.x + DC_BTN.w / 2, DC_BTN.y + 15);
+    }
 
     // buttons
     for (const btn of this.buttons) {

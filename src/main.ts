@@ -38,6 +38,7 @@ let camera = new Camera();
 let hud = new Hud();
 let paused = false;
 let muteToggled = false;
+let dcKeyHeld = false;
 let unlockSaved = false;
 let perkChoices: PerkDef[] | null = null;
 
@@ -123,6 +124,11 @@ function update(dt: number) {
 
   if (!paused) {
     camera.update(dt, input, battle.effects.shake);
+    if (input.pressed('KeyR') && !dcKeyHeld) {
+      dcKeyHeld = true;
+      battle.useDamageControl();
+    }
+    if (!input.pressed('KeyR')) dcKeyHeld = false;
     hud.handleClick(battle, input, camera);
     battle.update(dt);
   }

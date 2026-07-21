@@ -17,6 +17,13 @@ function playStage(stageId: string, maxSeconds = 900) {
   let unitIdx = 0;
   while (!b.result && b.time < maxSeconds) {
     b.update(dt);
+    // damage control when the fleet has lost a lot of HP and cash is spare
+    if (b.dcCooldown <= 0 && b.resource >= 500) {
+      const missing = [...b.units, ...b.turrets]
+        .filter(e => e.side === 'player')
+        .reduce((s, e) => s + (e.maxHp - e.hp), 0);
+      if (missing > 800) b.useDamageControl();
+    }
     // turrets: one anti-ship turret first, then the cheapest other
     const antiShip = [...b.stage.playerTurrets]
       .filter(id => TURRETS[id].weapons.some(w => WEAPONS[w].targets.includes('sea')))
