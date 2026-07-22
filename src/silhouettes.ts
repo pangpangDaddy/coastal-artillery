@@ -32,6 +32,56 @@ function ellipse(ctx: Ctx, x: number, y: number, rx: number, ry: number) {
   ctx.fill();
 }
 
+// ---- detail layer helpers ----
+// Highlights/shadows are translucent so they read on any hull colour (player black, enemy red, flash white).
+const HL = 'rgba(255,255,255,0.30)';
+const SH = 'rgba(0,0,0,0.38)';
+
+function tinted(ctx: Ctx, style: string, draw: () => void) {
+  const prev = ctx.fillStyle;
+  ctx.fillStyle = style;
+  draw();
+  ctx.fillStyle = prev;
+}
+
+// row of lit portholes along the hull side
+function portholes(ctx: Ctx, x0: number, x1: number, y: number, step = 8) {
+  tinted(ctx, HL, () => {
+    for (let x = x0; x <= x1; x += step) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
+// thin highlight along the deck edge
+function deckline(ctx: Ctx, x0: number, x1: number, y: number) {
+  tinted(ctx, HL, () => ctx.fillRect(x0, y, x1 - x0, 1));
+}
+
+// dark boot-topping stripe at the waterline
+function bootTop(ctx: Ctx, x0: number, x1: number, y = 2) {
+  tinted(ctx, SH, () => ctx.fillRect(x0, y, x1 - x0, 2));
+}
+
+// bridge window band
+function windows(ctx: Ctx, x: number, y: number, w: number) {
+  tinted(ctx, HL, () => ctx.fillRect(x, y, w, 1.6));
+}
+
+// taut rigging/aerial line in silhouette colour (extends the silhouette over the sky)
+function rig(ctx: Ctx, pts: number[][]) {
+  const prev = ctx.strokeStyle;
+  ctx.strokeStyle = ctx.fillStyle as string;
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.stroke();
+  ctx.strokeStyle = prev;
+}
+
 // All ships drawn facing +x, waterline at y=0, length ~ 100 * size.
 // Each silhouette is modeled on a real warship profile.
 const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
@@ -55,6 +105,12 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     // depth charge rack at stern
     ellipse(ctx, -37, -9, 2, 2);
     ellipse(ctx, -32, -9, 2, 2);
+    // detail layer
+    deckline(ctx, -36, 44, -6.5);
+    portholes(ctx, -30, 38, -3, 9);
+    bootTop(ctx, -37, 48);
+    windows(ctx, 0, -14.5, 10);
+    rig(ctx, [[16.6, -30], [-7.5, -31]]);
   },
   // SMS Emden (1908) light cruiser: ram bow, three capped funnels on a deckhouse, shielded guns, two pole masts
   cruiser(ctx, aim = -0.08) {
@@ -78,6 +134,14 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     rect(ctx, 24.5, -30, 9, 1.2);
     rect(ctx, -26, -32, 1.4, 19);
     rect(ctx, -29.5, -28, 9, 1.2);
+    // detail layer
+    deckline(ctx, -46, 52, -8.5);
+    portholes(ctx, -42, 46, -4, 8);
+    bootTop(ctx, -46, 55);
+    windows(ctx, 17, -18.5, 10);
+    rig(ctx, [[28.7, -34], [-25.3, -32]]);
+    rig(ctx, [[28.7, -34], [56, -6]]);
+    rig(ctx, [[-25.3, -32], [-46, -8]]);
   },
   // Queen Elizabeth-class super-dreadnought (1915): superfiring turret pairs fore/aft, tripod foremast, two funnels
   dreadnought(ctx, aim = -0.1) {
@@ -99,6 +163,16 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     // two capped funnels
     rect(ctx, -6, -31, 7, 19); rect(ctx, -7, -32, 9, 2);
     rect(ctx, -15, -29, 6, 17); rect(ctx, -16, -30, 8, 2);
+    // aft pole mast
+    rect(ctx, -24, -34, 1.4, 22);
+    // detail layer
+    deckline(ctx, -50, 56, -11.5);
+    portholes(ctx, -46, 50, -6, 8);
+    bootTop(ctx, -50, 60);
+    windows(ctx, 5, -26.5, 8);
+    rig(ctx, [[8.8, -40], [-23.3, -34]]);
+    rig(ctx, [[8.8, -40], [62, -7]]);
+    rig(ctx, [[-23.3, -34], [-50, -10]]);
   },
   // Fletcher-class destroyer (1942): flush deck, two raked funnels, superfiring 5" mounts, torpedo tubes amidships
   destroyer(ctx, aim = -0.1) {
@@ -124,6 +198,13 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     rect(ctx, 8, -32, 1.3, 12);
     ellipse(ctx, -44, -10, 2, 2);
     ellipse(ctx, -40, -10, 2, 2);
+    // detail layer
+    deckline(ctx, -44, 50, -8.5);
+    portholes(ctx, -40, 44, -4.5, 10);
+    bootTop(ctx, -44, 56);
+    windows(ctx, 11, -18.5, 11);
+    rig(ctx, [[8.6, -32], [-30, -10]]);
+    rig(ctx, [[8.6, -32], [54, -6]]);
   },
   // Elco 80' PT boat: planing hull with hard chine, small charthouse, torpedo tubes angled outboard
   pt_boat(ctx) {
@@ -137,6 +218,12 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     // aft AA mount
     rect(ctx, -28, -10, 6, 3);
     barrel(ctx, -25, -10, 10, -0.5, 1.4);
+    // detail layer
+    deckline(ctx, -38, 42, -6.5);
+    bootTop(ctx, -38, 44, 1);
+    windows(ctx, 0, -14.5, 8);
+    rig(ctx, [[-13.4, -20], [-36, -5]]);
+    rig(ctx, [[-13.4, -20], [12, -15]]);
   },
   // Baltimore-class heavy cruiser (1943): long forecastle, two triple 8" turrets fore + one aft, twin funnels, tower bridge
   cruiser_ww2(ctx, aim = -0.09) {
@@ -159,6 +246,13 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     rect(ctx, -21, -33, 1.4, 22);
     rect(ctx, 14, -14, 5, 3);
     rect(ctx, -44, -14, 5, 3);
+    // detail layer
+    deckline(ctx, -46, 52, -10.5);
+    portholes(ctx, -42, 46, -5.5, 9);
+    bootTop(ctx, -46, 58);
+    windows(ctx, 1, -25.5, 9);
+    rig(ctx, [[-20.3, -33], [5.5, -34]]);
+    rig(ctx, [[-20.3, -33], [-46, -10]]);
   },
   // Essex-class carrier (1943): full-length flight deck, compact starboard island with integrated funnel and tripod mast
   carrier(ctx) {
@@ -178,6 +272,13 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     poly(ctx, [[-32, -16], [-24, -16], [-26, -20], [-30, -20]]);
     rect(ctx, -36, -17.5, 5, 1.5);
     poly(ctx, [[-44, -16], [-37, -16], [-39, -19], [-42, -19]]);
+    // detail layer
+    deckline(ctx, -62, 62, -16.5);
+    tinted(ctx, SH, () => { for (let i = 0; i < 6; i++) rect(ctx, -44 + i * 18, -10.6, 8, 2.2); });
+    bootTop(ctx, -50, 58);
+    windows(ctx, 17, -30.5, 8);
+    rig(ctx, [[18.7, -42], [-20, -17]]);
+    rig(ctx, [[18.7, -42], [56, -14]]);
   },
   // USS Freedom (LCS-1): high raked stealth bow, superstructure well forward, sloped mast, low stern mission deck
   lcs(ctx, aim = -0.1) {
@@ -194,6 +295,11 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     barrel(ctx, 34, -11, 16, aim, 2);
     // low aft mission/flight deck with hangar step
     rect(ctx, -30, -10, 20, 4);
+    // detail layer
+    deckline(ctx, -42, 34, -5.5);
+    bootTop(ctx, -42, 52, 1);
+    windows(ctx, 6, -20, 12);
+    tinted(ctx, SH, () => rect(ctx, -28, -9, 14, 2.4));
   },
   // Type 055-style stealth destroyer: raked clipper bow, integrated mast tower, clean sloped slab sides
   missile_destroyer(ctx, aim = -0.06) {
@@ -217,6 +323,12 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     // hangar block + helideck lip
     poly(ctx, [[-48, -10], [-36, -10], [-37, -17], [-47, -17]]);
     rect(ctx, -53, -11, 6, 1.5);
+    // detail layer
+    deckline(ctx, -51, 60, -9.5);
+    bootTop(ctx, -51, 64, 1);
+    windows(ctx, -4, -21.5, 12);
+    tinted(ctx, HL, () => rect(ctx, 0.5, -30, 5, 4));
+    tinted(ctx, SH, () => rect(ctx, -46, -16, 8, 5));
   },
   // Ticonderoga-class cruiser (CG-47): long boxy superstructure, twin lattice masts, two funnels, guns + VLS fore and aft
   aegis(ctx, aim = -0.08) {
@@ -242,6 +354,13 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     barrel(ctx, 52, -13.5, 16, aim, 2);
     poly(ctx, [[-40, -11], [-32, -11], [-33, -15], [-39, -15]]);
     barrel(ctx, -38, -13, 13, Math.PI + 0.08, 2);
+    // detail layer
+    deckline(ctx, -50, 60, -10.5);
+    bootTop(ctx, -50, 62, 1);
+    windows(ctx, 12, -24.5, 11);
+    tinted(ctx, HL, () => rect(ctx, -2, -22, 6, 6));
+    rig(ctx, [[14.9, -44], [-17.1, -40]]);
+    rig(ctx, [[14.9, -44], [58, -8]]);
   },
   // Type VII U-boat: saddle-tank hull, stepped conning tower with AA platform, 88mm deck gun, net-cutter bow
   uboat(ctx) {
@@ -262,6 +381,10 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     poly(ctx, [[38, -9], [50, -5], [40, 1]]);
     poly(ctx, [[44, -8], [47, -6], [44, -5]]);
     poly(ctx, [[-40, -7], [-48, -2], [-40, 2]]);
+    // detail layer
+    tinted(ctx, SH, () => { for (let i = 0; i < 8; i++) rect(ctx, -33 + i * 9, -11, 4, 1.4); });
+    tinted(ctx, SH, () => rect(ctx, -34, 1, 68, 2));
+    rig(ctx, [[48, -6], [1.7, -28], [-46, -3]]);
   },
   // Los Angeles-class SSN: cylindrical hull with long parallel midbody, forward sail with sail planes, cruciform stern
   nuke_sub(ctx) {
@@ -281,6 +404,10 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     poly(ctx, [[-50, -1], [-58, 9], [-54, -1]]);
     // seven-blade prop hint
     ellipse(ctx, -57, -2.5, 1.6, 4);
+    // detail layer
+    deckline(ctx, -34, 42, -11);
+    tinted(ctx, SH, () => rect(ctx, -34, 2, 74, 2.4));
+    tinted(ctx, SH, () => { for (let i = 0; i < 5; i++) rect(ctx, -26 + i * 12, -6, 6, 1.4); });
   },
   // Iowa-class fast battleship (1943): long clipper bow, three triple 16" turrets, compact tower + twin funnels
   battleship_ww2(ctx, aim = -0.1) {
@@ -308,6 +435,13 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     barrel(ctx, 15, -13, 9, 0.25, 1.4);
     rect(ctx, -23, -14, 6, 3);
     barrel(ctx, -20, -13, 9, Math.PI - 0.25, 1.4);
+    // detail layer
+    deckline(ctx, -48, 40, -10.5);
+    portholes(ctx, -44, 36, -6, 9);
+    bootTop(ctx, -48, 58);
+    windows(ctx, -1, -24.5, 8);
+    rig(ctx, [[3, -40], [-30, -12]]);
+    rig(ctx, [[3, -40], [58, -5]]);
   },
   // BOSS super dreadnought (HMS Agincourt, 1913): flush deck crammed with turrets, two funnels, twin tripod masts
   super_dreadnought(ctx, aim = -0.1) {
@@ -335,6 +469,15 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     // aft tripod mast
     rect(ctx, -32, -36, 1.6, 17);
     rect(ctx, -35, -33, 8, 3);
+    // detail layer
+    deckline(ctx, -52, 56, -11.5);
+    portholes(ctx, -48, 52, -7, 8);
+    portholes(ctx, -44, 48, -3, 10);
+    bootTop(ctx, -52, 64);
+    windows(ctx, 7, -26.5, 7);
+    rig(ctx, [[10.4, -44], [-31.2, -36]]);
+    rig(ctx, [[10.4, -44], [64, -7]]);
+    rig(ctx, [[-31.2, -36], [-52, -10]]);
   },
   // Gato-class fleet submarine (1942): long low casing, tall shears on the fairwater, deck gun fore + AA aft
   fleet_sub(ctx) {
@@ -357,6 +500,10 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     // bow buoyancy tank + tapered stern
     poly(ctx, [[44, -9], [54, -4], [46, 1]]);
     poly(ctx, [[-46, -7], [-54, -2], [-46, 2]]);
+    // detail layer
+    tinted(ctx, SH, () => { for (let i = 0; i < 9; i++) rect(ctx, -39 + i * 9, -8.4, 4, 1.4); });
+    tinted(ctx, SH, () => rect(ctx, -40, 1, 80, 2));
+    rig(ctx, [[52, -5], [0.7, -32], [-52, -3]]);
   },
   // BOSS Yamato (1941): massive beamy hull, three triple 46cm turrets, iconic seven-tier pagoda tower bridge
   yamato(ctx, aim = -0.1) {
@@ -389,6 +536,15 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     barrel(ctx, 16, -14, 10, 0.2, 1.5);
     // waterline belt armor hint
     rect(ctx, -46, -4, 100, 1.4);
+    // detail layer
+    deckline(ctx, -54, 58, -12.5);
+    portholes(ctx, -50, 54, -8, 9);
+    portholes(ctx, -46, 50, -4.5, 11);
+    bootTop(ctx, -54, 66);
+    windows(ctx, 2, -29.5, 7);
+    windows(ctx, 4, -37.5, 4);
+    rig(ctx, [[6.5, -50], [-27, -18]]);
+    rig(ctx, [[6.5, -50], [64, -8]]);
   },
   // BOSS nuclear supercarrier: angled flight deck, small aft island, CIWS sponsons, parked jets
   supercarrier(ctx) {
@@ -417,6 +573,15 @@ const SHIPS: Record<string, (ctx: Ctx, aim?: number) => void> = {
     poly(ctx, [[-12, -17], [-2, -17], [-4, -21], [-10, -21]]);
     rect(ctx, -8, -22.5, 5, 1.5);
     poly(ctx, [[16, -17], [26, -17], [24, -21], [18, -21]]);
+    // detail layer
+    deckline(ctx, -66, 64, -17.5);
+    tinted(ctx, HL, () => { for (let i = 0; i < 8; i++) rect(ctx, -58 + i * 15, -14.6, 7, 1); });
+    tinted(ctx, SH, () => { rect(ctx, -32, -11.6, 9, 2.2); rect(ctx, 8, -11.6, 9, 2.2); });
+    bootTop(ctx, -54, 60);
+    windows(ctx, 33, -34.5, 10);
+    windows(ctx, 32, -28.5, 12);
+    rig(ctx, [[38.7, -52], [10, -18]]);
+    rig(ctx, [[38.7, -52], [60, -14]]);
   },
 };
 
@@ -439,6 +604,9 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     rect(ctx, 24, -8, 2, 16);
     ellipse(ctx, 2, 9, 2.5, 2.5);
     ellipse(ctx, 12, 9, 2.5, 2.5);
+    // detail: canopy rim glint + fuselage roundel
+    tinted(ctx, HL, () => rect(ctx, -6, -6.5, 7, 1.2));
+    tinted(ctx, HL, () => ellipse(ctx, -16, 0, 2.2, 2.2));
   },
   zeppelin(ctx) {
     ellipse(ctx, 0, 0, 56, 13);
@@ -447,6 +615,10 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     poly(ctx, [[-40, 6], [-62, 16], [-52, 3]]);
     // gondola slung below
     poly(ctx, [[-14, 13], [10, 13], [7, 20], [-11, 20]]);
+    // detail: envelope panel lines + top highlight + gondola windows
+    tinted(ctx, SH, () => { for (let i = 0; i < 4; i++) rect(ctx, -34 + i * 22, -11.5, 1.2, 23); });
+    tinted(ctx, HL, () => rect(ctx, -40, -11, 80, 1.4));
+    windows(ctx, -10, 15, 18);
   },
   fighter(ctx) {
     // fuselage with spinner nose
@@ -460,6 +632,9 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     rect(ctx, -27, -2, 8, 2.5);
     // propeller
     rect(ctx, 27, -9, 2, 18);
+    // detail: canopy glint + spine highlight
+    tinted(ctx, HL, () => poly(ctx, [[6, -5.5], [3, -8], [-2, -8], [-5, -5.5]]));
+    tinted(ctx, HL, () => rect(ctx, -20, -2.6, 38, 1));
   },
   bomber(ctx) {
     // heavier fuselage
@@ -476,6 +651,10 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     // torpedo slung under belly
     rect(ctx, -6, 11, 26, 4);
     poly(ctx, [[20, 11], [26, 13], [20, 15]]);
+    // detail: greenhouse glazing bars + fuselage highlight
+    tinted(ctx, HL, () => rect(ctx, -9, -8.6, 19, 1.2));
+    tinted(ctx, HL, () => rect(ctx, -22, -3, 44, 1));
+    tinted(ctx, SH, () => rect(ctx, -6, 12.2, 26, 1.2));
   },
   // SBD Dauntless dive bomber: stout fuselage, long greenhouse canopy, big bomb on displacing cradle under belly
   divebomber(ctx) {
@@ -491,6 +670,9 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     rect(ctx, 28, -10, 2, 20);
     ellipse(ctx, 4, 11, 9, 3);
     poly(ctx, [[13, 9], [17, 11], [13, 13]]);
+    // detail: canopy glint + bomb band
+    tinted(ctx, HL, () => rect(ctx, -10, -8.6, 20, 1.2));
+    tinted(ctx, SH, () => rect(ctx, -1, 8.6, 1.6, 5));
   },
   jet(ctx) {
     // pointed nose, sleek fuselage
@@ -505,6 +687,9 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     poly(ctx, [[10, 3], [-8, 3], [-15, 7], [6, 6]]);
     // exhaust nozzle
     rect(ctx, -27, -2, 4, 5);
+    // detail: bubble canopy glint + nozzle shading
+    tinted(ctx, HL, () => poly(ctx, [[14, -4.5], [9, -8], [3, -8], [0, -4.5]]));
+    tinted(ctx, SH, () => rect(ctx, -26.4, -1.4, 2.8, 3.8));
   },
   // MQ-9 Reaper: bulged sensor nose, long straight wing, V-tail, rear pusher propeller
   uav(ctx) {
@@ -524,6 +709,9 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     // wing-hardpoint missiles
     rect(ctx, 6, 0.5, 8, 1.6);
     rect(ctx, -16, 0.5, 8, 1.6);
+    // detail: sensor lens glint + satcom dome highlight
+    tinted(ctx, HL, () => ellipse(ctx, 11, 4, 1.3, 1.3));
+    tinted(ctx, HL, () => rect(ctx, 11, -4.6, 8, 1.2));
   },
 };
 
@@ -533,11 +721,14 @@ const TURRETS: Record<string, (ctx: Ctx, aim: number) => void> = {
     poly(ctx, [[-22, 0], [22, 0], [16, -16], [-16, -16]]);
     rect(ctx, -10, -22, 20, 6);
     barrel(ctx, 0, -18, 34, aim, 4);
+    tinted(ctx, HL, () => rect(ctx, -7, -20.5, 14, 1.4));
+    tinted(ctx, SH, () => rect(ctx, -20, -2, 40, 2));
   },
   turret_aa(ctx, aim) {
     poly(ctx, [[-16, 0], [16, 0], [12, -10], [-12, -10]]);
     barrel(ctx, -4, -10, 26, aim - 0.06, 3);
     barrel(ctx, 4, -10, 26, aim + 0.06, 3);
+    tinted(ctx, SH, () => rect(ctx, -14, -2, 28, 2));
   },
   turret_missile(ctx, aim) {
     rect(ctx, -20, -14, 40, 14);
@@ -546,11 +737,15 @@ const TURRETS: Record<string, (ctx: Ctx, aim: number) => void> = {
     ctx.rotate(aim);
     for (let i = 0; i < 4; i++) rect(ctx, 0, -14 + i * 8, 26, 6);
     ctx.restore();
+    tinted(ctx, HL, () => rect(ctx, -16, -11, 32, 1.4));
+    tinted(ctx, SH, () => rect(ctx, -18, -2, 36, 2));
   },
   turret_ciws(ctx, aim) {
     poly(ctx, [[-14, 0], [14, 0], [10, -12], [-10, -12]]);
     ellipse(ctx, 0, -14, 8, 7);
     barrel(ctx, 4, -14, 24, aim, 3);
+    tinted(ctx, HL, () => ellipse(ctx, -2, -17, 2.4, 2));
+    tinted(ctx, SH, () => rect(ctx, -12, -2, 24, 2));
   },
 };
 
