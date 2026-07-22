@@ -253,6 +253,10 @@ export class Menu {
     ctx.fillStyle = '#e8c95c';
     ctx.font = 'bold 16px monospace';
     ctx.fillText(`${t('xpLabel')}: ${getXp()}`, VIEW_W / 2, 82);
+    const nat = getNation();
+    ctx.fillStyle = nat.color;
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(lang === 'zh' ? `当前阵营：${nat.name[1]}（科技独立）` : `NATION: ${nat.name[0]} (independent tech)`, VIEW_W / 2, 100);
     // back button
     ctx.fillStyle = '#1c2027';
     ctx.fillRect(this.armoryBtn.x, this.armoryBtn.y, this.armoryBtn.w, this.armoryBtn.h);
@@ -354,8 +358,8 @@ export class Menu {
     y += 16;
     section(t('airTreeTitle'), y);
     y += 10;
-    drawLine(['FIGHTER PATH', '战斗机路线'], ['biplane', 'fighter_ww2', 'jet_fighter'], y, '#c9a15a'); y += rowH;
-    drawLine(['ATTACKER PATH', '攻击机路线'], ['zeppelin', 'dive_bomber', 'torpedo_bomber', 'uav'], y, '#c9a15a'); y += rowH;
+    drawLine(['FIGHTER PATH', '战斗机路线'], ['biplane', 'triplane', 'fighter_ww2', 'jet_fighter', 'stealth_fighter'], y, '#c9a15a'); y += rowH;
+    drawLine(['ATTACKER PATH', '攻击机路线'], ['zeppelin', 'dive_bomber', 'torpedo_bomber', 'heavy_fighter', 'uav'], y, '#c9a15a'); y += rowH;
     y += 16;
     section(t('turretSecTitle'), y);
     y += 10;
