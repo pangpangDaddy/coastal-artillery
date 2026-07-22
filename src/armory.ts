@@ -1,22 +1,49 @@
 import { TURRETS, UNITS } from './data';
 
 const KEY = 'coastal-artillery-armory';
+const VER = 2;
 
-// advanced equipment locked until purchased with XP
-export const ADVANCED: Record<string, number> = {
-  dreadnought: 600,
-  zeppelin: 450,
-  battleship: 700,
-  carrier: 900,
-  torpedo_bomber: 450,
-  aegis_cruiser: 1000,
-  nuke_sub: 500,
+// Tech tree: each entry unlocks only after its prerequisite is owned.
+// Ships follow World-of-Warships-style class lines; aircraft follow an
+// Ace-Combat-style branching tree rooted at the biplane.
+export const TECH: Record<string, { req: string; price: number }> = {
+  // destroyer line
+  pt_boat: { req: 'gunboat', price: 120 },
+  destroyer: { req: 'pt_boat', price: 180 },
+  lcs: { req: 'destroyer', price: 280 },
+  // cruiser line
+  cruiser_ww2: { req: 'cruiser_ww1', price: 320 },
+  missile_destroyer: { req: 'cruiser_ww2', price: 550 },
+  aegis_cruiser: { req: 'missile_destroyer', price: 1000 },
+  // battleship line (carrier caps the line)
+  dreadnought: { req: 'cruiser_ww1', price: 600 },
+  battleship: { req: 'dreadnought', price: 700 },
+  carrier: { req: 'battleship', price: 900 },
+  // submarine line
+  uboat: { req: 'gunboat', price: 150 },
+  submarine_ww2: { req: 'uboat', price: 320 },
+  nuke_sub: { req: 'submarine_ww2', price: 500 },
+  // aircraft: fighter path
+  fighter_ww2: { req: 'biplane', price: 200 },
+  jet_fighter: { req: 'fighter_ww2', price: 500 },
+  // aircraft: attacker path
+  zeppelin: { req: 'biplane', price: 450 },
+  dive_bomber: { req: 'fighter_ww2', price: 280 },
+  torpedo_bomber: { req: 'dive_bomber', price: 450 },
+  uav: { req: 'torpedo_bomber', price: 400 },
 };
+
+// units that were free before the tech tree existed — granted to pre-tree saves
+const LEGACY_FREE = [
+  'pt_boat', 'destroyer', 'lcs', 'cruiser_ww2', 'missile_destroyer',
+  'uboat', 'submarine_ww2', 'fighter_ww2', 'dive_bomber', 'uav',
+];
 
 export const LEVEL_MAX = 3;
 const LEVEL_BONUS = 0.12;
 
 interface ArmoryState {
+  ver?: number;
   xp: number;
   owned: string[];
   levels: Record<string, number>;
@@ -27,10 +54,14 @@ function load(): ArmoryState {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw) as ArmoryState;
-      return { xp: s.xp || 0, owned: s.owned || [], levels: s.levels || {} };
+      const owned = s.owned || [];
+      if ((s.ver ?? 1) < VER && (s.xp > 0 || owned.length > 0 || Object.keys(s.levels || {}).length > 0)) {
+        for (const id of LEGACY_FREE) if (!owned.includes(id)) owned.push(id);
+      }
+      return { ver: VER, xp: s.xp || 0, owned, levels: s.levels || {} };
     }
   } catch { /* ignore */ }
-  return { xp: 0, owned: [], levels: {} };
+  return { ver: VER, xp: 0, owned: [], levels: {} };
 }
 
 let state = load();
@@ -47,16 +78,26 @@ export function addXp(n: number) {
 }
 
 export function isOwned(id: string): boolean {
-  return !(id in ADVANCED) || state.owned.includes(id);
+  return !(id in TECH) || state.owned.includes(id);
+}
+
+export function reqOf(id: string): string | null {
+  return TECH[id]?.req ?? null;
+}
+
+export function canResearch(id: string): boolean {
+  const node = TECH[id];
+  return !!node && !isOwned(id) && isOwned(node.req);
 }
 
 export function buyPrice(id: string): number | null {
-  return isOwned(id) ? null : ADVANCED[id];
+  return isOwned(id) ? null : TECH[id].price;
 }
 
 export function buyEquip(id: string): boolean {
-  const price = buyPrice(id);
-  if (price === null || state.xp < price) return false;
+  if (!canResearch(id)) return false;
+  const price = TECH[id].price;
+  if (state.xp < price) return false;
   state.xp -= price;
   state.owned.push(id);
   save();

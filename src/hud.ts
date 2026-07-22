@@ -6,7 +6,7 @@ import { turretSlotPos } from './entities';
 import { HUD_H, RADAR_H, RADAR_W, RADAR_X, RADAR_Y, VIEW_H, VIEW_W, WORLD_W } from './types';
 import { inRadar } from './core';
 import { nameOf, shortName, t, lang } from './i18n';
-import { buyEquip, buyPrice, getXp, isOwned, levelOf } from './armory';
+import { buyEquip, buyPrice, canResearch, getXp, isOwned, levelOf, reqOf } from './armory';
 
 const BTN = 56;
 const BTN_GAP = 6;
@@ -63,17 +63,24 @@ export class Hud {
       if (cx >= btn.x && cx <= btn.x + BTN && cy >= btn.y && cy <= btn.y + BTN) {
         if (btn.kind === 'unit') {
           if (!isOwned(btn.id)) {
-            const price = buyPrice(btn.id);
-            if (price !== null && getXp() >= price) {
-              buyEquip(btn.id);
-              b.sound.click();
+            if (!canResearch(btn.id)) {
+              const req = reqOf(btn.id)!;
+              const rn = nameOf(req, UNITS[req]?.name ?? TURRETS[req]?.name ?? req);
               b.message = lang === 'zh'
-                ? `已解锁 ${nameOf(btn.id, UNITS[btn.id].name)} — 点击购买`
-                : `Unlocked ${nameOf(btn.id, UNITS[btn.id].name)} — click to buy`;
+                ? `需先解锁 ${rn}`
+                : `Requires ${rn} first`;
             } else {
-              b.message = lang === 'zh'
-                ? `需要 ${price} 经验解锁（当前 ${getXp()}）`
-                : `Need ${price} XP to unlock (have ${getXp()})`;
+              const price = buyPrice(btn.id);
+              if (price !== null && getXp() >= price && buyEquip(btn.id)) {
+                b.sound.click();
+                b.message = lang === 'zh'
+                  ? `已解锁 ${nameOf(btn.id, UNITS[btn.id].name)} — 点击购买`
+                  : `Unlocked ${nameOf(btn.id, UNITS[btn.id].name)} — click to buy`;
+              } else {
+                b.message = lang === 'zh'
+                  ? `需要 ${price} 经验解锁（当前 ${getXp()}）`
+                  : `Need ${price} XP to unlock (have ${getXp()})`;
+              }
             }
             b.messageTimer = 2.5;
             return;
