@@ -590,75 +590,122 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
   biplane(ctx) {
     // fuselage tapering to tail
     poly(ctx, [[24, -1], [20, -3], [-16, -3], [-26, -1], [-26, 1], [-16, 3], [20, 3]]);
-    // upper + lower wings (airfoil cross-sections) with struts
-    rect(ctx, -8, -13, 24, 3);
-    rect(ctx, -6, 4, 22, 3);
+    // round engine cowling
+    ellipse(ctx, 20, 0, 4.5, 3.6);
+    // upper + lower wings (staggered, airfoil cross-sections) with struts
+    rect(ctx, -6, -13, 24, 3);
+    rect(ctx, -8, 4, 22, 3);
     rect(ctx, -2, -13, 1.5, 17);
     rect(ctx, 10, -13, 1.5, 17);
-    // cockpit
+    // interplane bracing wires
+    rig(ctx, [[-1.5, -10], [11, 4]]);
+    rig(ctx, [[11, -10], [-1.5, 4]]);
+    // cockpit with windscreen + headrest fairing
     poly(ctx, [[2, -3], [0, -7], [-6, -7], [-8, -3]]);
-    // tail fin + tailplane
-    poly(ctx, [[-22, -2], [-30, -11], [-26, -1]]);
+    poly(ctx, [[-8, -3], [-14, -3], [-9, -5]]);
+    // tail fin + rounded rudder + tailplane
+    poly(ctx, [[-22, -2], [-28, -11], [-31, -10], [-30, -3], [-26, -1]]);
     rect(ctx, -32, -2, 9, 2.5);
-    // propeller + wheels
+    // kingpost aerial wire to the tail
+    rig(ctx, [[4, -13], [-28, -3]]);
+    // propeller + wheels with axle strut + tail skid
     rect(ctx, 24, -8, 2, 16);
-    ellipse(ctx, 2, 9, 2.5, 2.5);
-    ellipse(ctx, 12, 9, 2.5, 2.5);
-    // detail: canopy rim glint + fuselage roundel
+    rect(ctx, 4, 3, 1.2, 6);
+    rect(ctx, 11, 3, 1.2, 6);
+    ellipse(ctx, 4, 9, 2.5, 2.5);
+    ellipse(ctx, 11, 9, 2.5, 2.5);
+    poly(ctx, [[-24, 1], [-28, 5], [-26, 5]]);
+    // detail: canopy rim glint + fuselage roundel + cowling shine
     tinted(ctx, HL, () => rect(ctx, -6, -6.5, 7, 1.2));
     tinted(ctx, HL, () => ellipse(ctx, -16, 0, 2.2, 2.2));
+    tinted(ctx, SH, () => ellipse(ctx, -16, 0, 1.1, 1.1));
+    tinted(ctx, HL, () => ellipse(ctx, 21, -1.4, 2, 1));
   },
   zeppelin(ctx) {
     ellipse(ctx, 0, 0, 56, 13);
-    // cross tail fins
+    // blunt nose mooring cap
+    ellipse(ctx, 55, 0, 3, 4);
+    // cross tail fins with rudder step
     poly(ctx, [[-40, -6], [-62, -16], [-52, -3]]);
     poly(ctx, [[-40, 6], [-62, 16], [-52, 3]]);
-    // gondola slung below
+    rect(ctx, -60, -15, 2, 30);
+    // forward control gondola slung below
     poly(ctx, [[-14, 13], [10, 13], [7, 20], [-11, 20]]);
+    // aft engine cars with pusher props
+    ellipse(ctx, -28, 15, 5, 3);
+    rect(ctx, -34.5, 11, 1.5, 8);
+    ellipse(ctx, 24, 15, 5, 3);
+    rect(ctx, 17.5, 11, 1.5, 8);
+    // suspension rigging from envelope to cars
+    rig(ctx, [[-16, 11], [-12, 18]]); rig(ctx, [[8, 11], [5, 18]]);
+    rig(ctx, [[-32, 10], [-29, 13]]); rig(ctx, [[-22, 11], [-26, 13]]);
+    rig(ctx, [[20, 11], [23, 13]]); rig(ctx, [[30, 10], [26, 13]]);
     // detail: envelope panel lines + top highlight + gondola windows
-    tinted(ctx, SH, () => { for (let i = 0; i < 4; i++) rect(ctx, -34 + i * 22, -11.5, 1.2, 23); });
+    tinted(ctx, SH, () => { for (let i = 0; i < 5; i++) rect(ctx, -38 + i * 19, -11.8, 1.2, 23.6); });
     tinted(ctx, HL, () => rect(ctx, -40, -11, 80, 1.4));
+    tinted(ctx, SH, () => rect(ctx, -44, 9.5, 88, 1.2));
     windows(ctx, -10, 15, 18);
   },
   fighter(ctx) {
     // fuselage with spinner nose
     poly(ctx, [[27, -1], [20, -4], [-4, -5], [-22, -2], [-22, 2], [-4, 5], [20, 4], [27, 1]]);
+    ellipse(ctx, 26, 0, 3, 2);
     // canopy
     poly(ctx, [[8, -5], [4, -9], [-4, -9], [-9, -5]]);
+    // radiator scoop under the nose
+    rect(ctx, 12, 4, 8, 2.5);
     // wing (chord seen from the side, dipping below fuselage)
     poly(ctx, [[12, 3], [-2, 4], [-9, 8], [9, 7]]);
     // tail fin + tailplane
     poly(ctx, [[-18, -2], [-25, -13], [-21, -1]]);
     rect(ctx, -27, -2, 8, 2.5);
+    // aerial mast behind canopy + wire to fin tip
+    rect(ctx, -6, -8, 1.2, 4);
+    rig(ctx, [[-5.4, -8], [-24, -12]]);
     // propeller
     rect(ctx, 27, -9, 2, 18);
-    // detail: canopy glint + spine highlight
+    // detail: canopy glint + spine highlight + exhaust stub row
     tinted(ctx, HL, () => poly(ctx, [[6, -5.5], [3, -8], [-2, -8], [-5, -5.5]]));
     tinted(ctx, HL, () => rect(ctx, -20, -2.6, 38, 1));
+    tinted(ctx, SH, () => { for (let i = 0; i < 4; i++) rect(ctx, 13 + i * 2.4, -3.6, 1.4, 1.2); });
+    tinted(ctx, SH, () => rect(ctx, 12.5, 4.6, 7, 1.2));
   },
   bomber(ctx) {
     // heavier fuselage
     poly(ctx, [[30, -1], [22, -5], [-8, -6], [-26, -2], [-26, 2], [-8, 6], [22, 5], [30, 1]]);
+    // radial engine cowling ring
+    ellipse(ctx, 24, 0, 5, 4.4);
     // long greenhouse canopy
     poly(ctx, [[12, -6], [8, -10], [-8, -10], [-12, -6]]);
+    // rear gunner position step
+    poly(ctx, [[-8, -6], [-8, -9], [-13, -9], [-15, -6]]);
     // wing
     poly(ctx, [[14, 4], [-4, 5], [-12, 10], [10, 8]]);
     // tail fin + tailplane
     poly(ctx, [[-21, -3], [-29, -15], [-24, -2]]);
     rect(ctx, -31, -2, 9, 3);
+    // aerial mast + wire back to fin
+    rect(ctx, 10, -9, 1.2, 3);
+    rig(ctx, [[10.6, -9], [-28, -14]]);
     // propeller
     rect(ctx, 30, -10, 2, 20);
-    // torpedo slung under belly
+    // torpedo slung under belly on cradle straps
     rect(ctx, -6, 11, 26, 4);
     poly(ctx, [[20, 11], [26, 13], [20, 15]]);
-    // detail: greenhouse glazing bars + fuselage highlight
+    rect(ctx, 0, 8, 1.4, 3.5);
+    rect(ctx, 10, 8, 1.4, 3.5);
+    // detail: greenhouse glazing bars + fuselage highlight + cowling shine
     tinted(ctx, HL, () => rect(ctx, -9, -8.6, 19, 1.2));
+    tinted(ctx, SH, () => { for (let i = 0; i < 4; i++) rect(ctx, -5 + i * 4.5, -9.6, 1, 3.4); });
     tinted(ctx, HL, () => rect(ctx, -22, -3, 44, 1));
     tinted(ctx, SH, () => rect(ctx, -6, 12.2, 26, 1.2));
+    tinted(ctx, HL, () => ellipse(ctx, 25, -1.6, 2.2, 1.2));
   },
   // SBD Dauntless dive bomber: stout fuselage, long greenhouse canopy, big bomb on displacing cradle under belly
   divebomber(ctx) {
     poly(ctx, [[28, -1], [21, -5], [-6, -6], [-24, -2], [-24, 2], [-6, 6], [21, 5], [28, 1]]);
+    // radial engine cowling
+    ellipse(ctx, 22, 0, 5, 4.2);
     // long stepped canopy
     poly(ctx, [[13, -6], [9, -10], [-10, -10], [-14, -6]]);
     // wing chord
@@ -666,29 +713,47 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     // tall rounded fin + tailplane
     poly(ctx, [[-19, -3], [-26, -14], [-22, -1]]);
     rect(ctx, -29, -2, 9, 3);
-    // propeller + big centreline bomb
+    // aerial mast + wire to fin
+    rect(ctx, 11, -9, 1.2, 3);
+    rig(ctx, [[11.6, -9], [-25, -13]]);
+    // propeller + big centreline bomb on swing cradle arms
     rect(ctx, 28, -10, 2, 20);
     ellipse(ctx, 4, 11, 9, 3);
     poly(ctx, [[13, 9], [17, 11], [13, 13]]);
-    // detail: canopy glint + bomb band
+    rect(ctx, 0, 6, 1.4, 4);
+    rect(ctx, 8, 6, 1.4, 4);
+    // detail: canopy glazing bars + perforated dive brakes + bomb band
     tinted(ctx, HL, () => rect(ctx, -10, -8.6, 20, 1.2));
+    tinted(ctx, SH, () => { for (let i = 0; i < 4; i++) rect(ctx, -8 + i * 5, -9.6, 1, 3.4); });
+    tinted(ctx, SH, () => { for (let i = 0; i < 5; i++) rect(ctx, -10 + i * 2.6, 7.6, 1.2, 1.2); });
     tinted(ctx, SH, () => rect(ctx, -1, 8.6, 1.6, 5));
+    tinted(ctx, HL, () => ellipse(ctx, 23, -1.5, 2.2, 1.1));
   },
   jet(ctx) {
     // pointed nose, sleek fuselage
     poly(ctx, [[32, 0], [20, -4], [-6, -5], [-24, -3], [-24, 3], [-6, 5], [20, 4]]);
+    // nose pitot boom
+    rect(ctx, 31, -0.6, 6, 1.2);
     // canopy
     poly(ctx, [[16, -4], [10, -9], [2, -9], [-2, -4]]);
-    // intake under mid-body
+    // intake with lip under mid-body
     rect(ctx, 0, 4, 11, 3);
-    // swept vertical tail
+    poly(ctx, [[11, 4], [13, 5.5], [11, 7]]);
+    // swept vertical tail + tailplane
     poly(ctx, [[-12, -4], [-18, -16], [-24, -16], [-21, -4]]);
-    // wing hint
+    poly(ctx, [[-16, 2], [-26, 2], [-22, 5], [-14, 5]]);
+    // wing hint + underwing missile on pylon
     poly(ctx, [[10, 3], [-8, 3], [-15, 7], [6, 6]]);
+    rect(ctx, -4, 6.5, 1.4, 2);
+    rect(ctx, -9, 8.5, 12, 1.8);
+    poly(ctx, [[3, 8.5], [6, 9.4], [3, 10.3]]);
     // exhaust nozzle
     rect(ctx, -27, -2, 4, 5);
-    // detail: bubble canopy glint + nozzle shading
+    // detail: bubble canopy glint + intake lip + panel line + nozzle shading
     tinted(ctx, HL, () => poly(ctx, [[14, -4.5], [9, -8], [3, -8], [0, -4.5]]));
+    tinted(ctx, HL, () => rect(ctx, 0.5, 4.4, 10, 1));
+    tinted(ctx, SH, () => rect(ctx, 18, -3.4, 1.2, 7));
+    tinted(ctx, HL, () => rect(ctx, -22, -3.4, 36, 1));
     tinted(ctx, SH, () => rect(ctx, -26.4, -1.4, 2.8, 3.8));
   },
   // MQ-9 Reaper: bulged sensor nose, long straight wing, V-tail, rear pusher propeller
@@ -696,22 +761,32 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     // fuselage with bulged satcom nose fairing
     poly(ctx, [[20, -1], [14, -4], [-18, -3], [-24, -1], [-24, 1], [-18, 3], [14, 3], [20, 1]]);
     ellipse(ctx, 16, -1.5, 7, 4.5);
-    // chin sensor turret ball
+    // chin sensor turret ball on mount stub
+    rect(ctx, 9, 2.5, 3, 2);
     ellipse(ctx, 10, 4.5, 3.5, 3.5);
-    // long high-aspect wing across mid-fuselage
+    // long high-aspect wing with upturned winglet tips
     rect(ctx, -30, -2.5, 24, 2.2);
     rect(ctx, 2, -2.5, 26, 2.2);
-    // V-tail (upper) + ventral fin
+    poly(ctx, [[-30, -2.5], [-33, -6], [-31.5, -6], [-28, -2.5]]);
+    poly(ctx, [[28, -2.5], [31, -6], [29.5, -6], [26, -2.5]]);
+    // V-tail (upper) + ventral fin + tail bumper skid
     poly(ctx, [[-18, -2], [-28, -12], [-23, -12], [-15, -3]]);
     poly(ctx, [[-18, 2], [-25, 9], [-21, 9], [-14, 3]]);
+    poly(ctx, [[-22, 1], [-25, 4], [-23, 4]]);
     // pusher prop disc behind tail
     rect(ctx, -27, -8, 1.8, 16);
-    // wing-hardpoint missiles
+    // wing-hardpoint missiles on pylons
+    rect(ctx, 8, -0.6, 1.2, 1.6);
+    rect(ctx, -13, -0.6, 1.2, 1.6);
     rect(ctx, 6, 0.5, 8, 1.6);
     rect(ctx, -16, 0.5, 8, 1.6);
-    // detail: sensor lens glint + satcom dome highlight
+    poly(ctx, [[14, 0.5], [16, 1.3], [14, 2.1]]);
+    poly(ctx, [[-8, 0.5], [-6, 1.3], [-8, 2.1]]);
+    // detail: sensor lens glint + satcom dome highlight + fuselage panel line
     tinted(ctx, HL, () => ellipse(ctx, 11, 4, 1.3, 1.3));
     tinted(ctx, HL, () => rect(ctx, 11, -4.6, 8, 1.2));
+    tinted(ctx, SH, () => rect(ctx, 8.5, -3.4, 1, 6));
+    tinted(ctx, HL, () => rect(ctx, -22, -1.6, 34, 0.9));
   },
 };
 
