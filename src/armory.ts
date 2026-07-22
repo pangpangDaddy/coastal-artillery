@@ -1,7 +1,8 @@
 import { TURRETS, UNITS } from './data';
+import { getNation } from './nations';
 
 const KEY = 'coastal-artillery-armory';
-const VER = 2;
+const VER = 3;
 
 // Tech tree: each entry unlocks only after its prerequisite is owned.
 // Ships follow World-of-Warships-style class lines; aircraft follow an
@@ -24,13 +25,16 @@ export const TECH: Record<string, { req: string; price: number }> = {
   submarine_ww2: { req: 'uboat', price: 320 },
   nuke_sub: { req: 'submarine_ww2', price: 500 },
   // aircraft: fighter path
-  fighter_ww2: { req: 'biplane', price: 200 },
+  triplane: { req: 'biplane', price: 150 },
+  fighter_ww2: { req: 'triplane', price: 200 },
   jet_fighter: { req: 'fighter_ww2', price: 500 },
+  stealth_fighter: { req: 'jet_fighter', price: 900 },
   // aircraft: attacker path
   zeppelin: { req: 'biplane', price: 450 },
   dive_bomber: { req: 'fighter_ww2', price: 280 },
   torpedo_bomber: { req: 'dive_bomber', price: 450 },
-  uav: { req: 'torpedo_bomber', price: 400 },
+  heavy_fighter: { req: 'torpedo_bomber', price: 380 },
+  uav: { req: 'heavy_fighter', price: 400 },
 };
 
 // units that were free before the tech tree existed — granted to pre-tree saves
@@ -42,29 +46,47 @@ const LEGACY_FREE = [
 export const LEVEL_MAX = 3;
 const LEVEL_BONUS = 0.12;
 
+interface NationProgress {
+  owned: string[];
+  levels: Record<string, number>;
+}
+
+// XP is shared across nations; research + upgrade levels are per-nation.
 interface ArmoryState {
   ver?: number;
   xp: number;
-  owned: string[];
-  levels: Record<string, number>;
+  nations: Record<string, NationProgress>;
 }
 
 function load(): ArmoryState {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
-      const s = JSON.parse(raw) as ArmoryState;
-      const owned = s.owned || [];
-      if ((s.ver ?? 1) < VER && (s.xp > 0 || owned.length > 0 || Object.keys(s.levels || {}).length > 0)) {
-        for (const id of LEGACY_FREE) if (!owned.includes(id)) owned.push(id);
+      const s = JSON.parse(raw) as ArmoryState & { owned?: string[]; levels?: Record<string, number> };
+      const ver = s.ver ?? 1;
+      if (ver < 3) {
+        // pre-v3: single shared progress — move it onto the currently selected nation
+        const owned = s.owned || [];
+        const levels = s.levels || {};
+        if (ver < 2 && (s.xp > 0 || owned.length > 0 || Object.keys(levels).length > 0)) {
+          for (const id of LEGACY_FREE) if (!owned.includes(id)) owned.push(id);
+        }
+        return { ver: VER, xp: s.xp || 0, nations: { [getNation().id]: { owned, levels } } };
       }
-      return { ver: VER, xp: s.xp || 0, owned, levels: s.levels || {} };
+      return { ver: VER, xp: s.xp || 0, nations: s.nations || {} };
     }
   } catch { /* ignore */ }
-  return { ver: VER, xp: 0, owned: [], levels: {} };
+  return { ver: VER, xp: 0, nations: {} };
 }
 
 let state = load();
+
+function progress(): NationProgress {
+  const nid = getNation().id;
+  let p = state.nations[nid];
+  if (!p) { p = { owned: [], levels: {} }; state.nations[nid] = p; }
+  return p;
+}
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignore */ }
@@ -78,7 +100,7 @@ export function addXp(n: number) {
 }
 
 export function isOwned(id: string): boolean {
-  return !(id in TECH) || state.owned.includes(id);
+  return !(id in TECH) || progress().owned.includes(id);
 }
 
 export function reqOf(id: string): string | null {
@@ -99,13 +121,13 @@ export function buyEquip(id: string): boolean {
   const price = TECH[id].price;
   if (state.xp < price) return false;
   state.xp -= price;
-  state.owned.push(id);
+  progress().owned.push(id);
   save();
   return true;
 }
 
 export function levelOf(id: string): number {
-  return state.levels[id] ?? 0;
+  return progress().levels[id] ?? 0;
 }
 
 export function lvlMult(id: string): number {
@@ -128,7 +150,7 @@ export function upgradeEquip(id: string): boolean {
   const price = upgradePrice(id);
   if (price === null || state.xp < price) return false;
   state.xp -= price;
-  state.levels[id] = levelOf(id) + 1;
+  progress().levels[id] = levelOf(id) + 1;
   save();
   return true;
 }

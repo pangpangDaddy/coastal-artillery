@@ -621,6 +621,41 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     tinted(ctx, SH, () => ellipse(ctx, -16, 0, 1.1, 1.1));
     tinted(ctx, HL, () => ellipse(ctx, 21, -1.4, 2, 1));
   },
+  // Fokker Dr.I style triplane: three stacked wings, stubby fuselage, twin guns over the cowling
+  triplane(ctx) {
+    // short stubby fuselage
+    poly(ctx, [[20, -1], [16, -3.5], [-14, -3], [-22, -1], [-22, 1], [-14, 3], [16, 3.5]]);
+    // flat-front rotary cowling
+    rect(ctx, 16, -3.5, 5, 7);
+    // three stacked wings with interplane struts
+    rect(ctx, -4, -15, 22, 2.6);
+    rect(ctx, -6, -7.5, 22, 2.6);
+    rect(ctx, -7, 3.5, 20, 2.6);
+    rect(ctx, 1, -15, 1.4, 21);
+    rect(ctx, 9, -15, 1.4, 21);
+    // bracing wire
+    rig(ctx, [[1.7, -12.4], [10, 3.5]]);
+    // twin machine guns on the cowl
+    rect(ctx, 8, -5.4, 9, 1.2);
+    rect(ctx, 8, -6.8, 9, 1.2);
+    // cockpit windscreen + headrest
+    poly(ctx, [[1, -3], [-1, -6.5], [-6, -6.5], [-8, -3]]);
+    poly(ctx, [[-8, -3], [-13, -3], [-9, -4.8]]);
+    // balanced rudder (comma shape) + tailplane
+    poly(ctx, [[-18, -2], [-23, -10], [-27, -9.5], [-26, -2.5], [-22, -1]]);
+    rect(ctx, -28, -1.8, 8, 2.4);
+    // propeller + wheels on axle + tail skid
+    rect(ctx, 21, -7, 2, 14);
+    rect(ctx, 4, 3.5, 1.2, 5);
+    ellipse(ctx, 4.5, 9, 2.4, 2.4);
+    poly(ctx, [[-20, 1], [-24, 4.5], [-22, 4.5]]);
+    // detail: cowl face shine + fuselage cross + wing leading-edge glints
+    tinted(ctx, HL, () => rect(ctx, 16.5, -3, 1.6, 6));
+    tinted(ctx, HL, () => ellipse(ctx, -14, 0, 2.2, 2.2));
+    tinted(ctx, SH, () => ellipse(ctx, -14, 0, 1.1, 1.1));
+    tinted(ctx, HL, () => rect(ctx, -4, -14.6, 22, 1));
+    tinted(ctx, HL, () => rect(ctx, -6, -7.1, 22, 1));
+  },
   zeppelin(ctx) {
     ellipse(ctx, 0, 0, 56, 13);
     // blunt nose mooring cap
@@ -669,6 +704,34 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     tinted(ctx, HL, () => rect(ctx, -20, -2.6, 38, 1));
     tinted(ctx, SH, () => { for (let i = 0; i < 4; i++) rect(ctx, 13 + i * 2.4, -3.6, 1.4, 1.2); });
     tinted(ctx, SH, () => rect(ctx, 12.5, 4.6, 7, 1.2));
+  },
+  // P-38 style twin-boom heavy fighter: central gondola, engine boom, rockets under the wing
+  heavyfighter(ctx) {
+    // central crew gondola with gun nose
+    poly(ctx, [[24, -1], [18, -4.5], [2, -5.5], [-6, -3], [-6, 3], [2, 5.5], [18, 4.5], [24, 1]]);
+    rect(ctx, 23, -1.5, 5, 1.2);
+    rect(ctx, 23, 0.5, 5, 1.2);
+    // bubble canopy
+    poly(ctx, [[12, -5], [8, -9.5], [0, -9.5], [-4, -5]]);
+    // engine boom running back to the tail (near-side)
+    poly(ctx, [[16, 2], [10, 6], [-24, 5], [-28, 3], [-28, 1], [-20, 0], [10, 1]]);
+    ellipse(ctx, 14, 3.5, 4.5, 3.6);
+    rect(ctx, 18, -4, 2, 15);
+    // wing chord passing through gondola
+    poly(ctx, [[8, 0], [-10, 1], [-17, 5], [4, 4]]);
+    // twin fin + joining tailplane
+    poly(ctx, [[-22, 1], [-28, -10], [-24, -10], [-19, 0]]);
+    rect(ctx, -30, 0.5, 10, 2.4);
+    // rocket rack under the wing
+    rect(ctx, -12, 7, 14, 1.8);
+    poly(ctx, [[2, 7], [5, 7.9], [2, 8.8]]);
+    rect(ctx, -8, 5.2, 1.2, 2);
+    rect(ctx, -1, 5.2, 1.2, 2);
+    // detail: canopy glint + boom highlight + supercharger intakes + spinner shine
+    tinted(ctx, HL, () => poly(ctx, [[10, -5.5], [7, -8.5], [1, -8.5], [-2, -5.5]]));
+    tinted(ctx, HL, () => rect(ctx, -26, 1.4, 40, 1));
+    tinted(ctx, SH, () => { for (let i = 0; i < 3; i++) rect(ctx, -2 + i * 4, 2, 2.4, 1.2); });
+    tinted(ctx, HL, () => ellipse(ctx, 15.5, 2.6, 1.8, 1.1));
   },
   bomber(ctx) {
     // heavier fuselage
@@ -755,6 +818,32 @@ const AIR: Record<string, (ctx: Ctx) => void> = {
     tinted(ctx, SH, () => rect(ctx, 18, -3.4, 1.2, 7));
     tinted(ctx, HL, () => rect(ctx, -22, -3.4, 36, 1));
     tinted(ctx, SH, () => rect(ctx, -26.4, -1.4, 2.8, 3.8));
+  },
+  // 5th-gen stealth fighter: faceted chined nose, blended angular body, canted twin tails, no round shapes
+  stealth(ctx) {
+    // chined faceted fuselage
+    poly(ctx, [[34, 0], [22, -3.5], [4, -5], [-16, -4], [-26, -2.5], [-26, 2.5], [-12, 4.5], [10, 4.5], [24, 2.5]]);
+    // faceted low-profile canopy
+    poly(ctx, [[18, -3.8], [12, -7.5], [4, -7.5], [-1, -4.2]]);
+    // canted twin tails (near + far, offset)
+    poly(ctx, [[-13, -4], [-18, -14], [-23, -13], [-22, -3.8]]);
+    poly(ctx, [[-17, -3.5], [-22, -11.5], [-25, -11], [-24, -3]]);
+    // blended wing chord
+    poly(ctx, [[12, 2.5], [-8, 3], [-16, 7], [4, 6]]);
+    // stabilator
+    poly(ctx, [[-18, 2.5], [-28, 3], [-24, 6], [-15, 5.5]]);
+    // diverterless intake bump
+    poly(ctx, [[8, 4.5], [14, 4.5], [12, 6.5], [9, 6.5]]);
+    // internal weapon bay outline + cracked-open door hint
+    tinted(ctx, SH, () => rect(ctx, -6, 3.6, 16, 1));
+    poly(ctx, [[-2, 4.5], [4, 4.5], [3, 6], [-1, 6]]);
+    // sawtooth exhaust
+    poly(ctx, [[-26, -2.5], [-30, -1.5], [-26, -0.5], [-30, 0.5], [-26, 1.5], [-30, 2.5], [-26, 2.5]]);
+    // detail: canopy glint + chine line + panel facets
+    tinted(ctx, HL, () => poly(ctx, [[16, -4], [11, -6.8], [5, -6.8], [1, -4.4]]));
+    tinted(ctx, HL, () => rect(ctx, -24, -1, 54, 0.9));
+    tinted(ctx, SH, () => poly(ctx, [[24, -1], [20, -2.8], [18, -1]]));
+    tinted(ctx, SH, () => rect(ctx, -10, -3.2, 1, 6.5));
   },
   // MQ-9 Reaper: bulged sensor nose, long straight wing, V-tail, rear pusher propeller
   uav(ctx) {
