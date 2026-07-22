@@ -1,7 +1,7 @@
 import { ERAS, STAGES, TURRETS, UNITS } from './data';
 import { lang, nameOf, t, toggleLang } from './i18n';
 import { getNation, NATIONS, setNation } from './nations';
-import { buyEquip, buyPrice, getXp, isOwned, levelOf, LEVEL_MAX, upgradeEquip, upgradePrice } from './armory';
+import { buyEquip, canResearch, getXp, isOwned, levelOf, LEVEL_MAX, reqOf, TECH, upgradeEquip, upgradePrice } from './armory';
 import { drawUnitSilhouette } from './silhouettes';
 import { ownedPerks, perkName } from './perks';
 import { VIEW_H, VIEW_W } from './types';
@@ -248,11 +248,11 @@ export class Menu {
     this.armoryRows = [];
     ctx.textAlign = 'center';
     ctx.fillStyle = '#e8e6e0';
-    ctx.font = 'bold 26px monospace';
-    ctx.fillText(t('armoryTitle'), VIEW_W / 2, 78);
+    ctx.font = 'bold 24px monospace';
+    ctx.fillText(t('armoryTitle'), VIEW_W / 2, 56);
     ctx.fillStyle = '#e8c95c';
-    ctx.font = 'bold 18px monospace';
-    ctx.fillText(`${t('xpLabel')}: ${getXp()}`, VIEW_W / 2, 106);
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText(`${t('xpLabel')}: ${getXp()}`, VIEW_W / 2, 82);
     // back button
     ctx.fillStyle = '#1c2027';
     ctx.fillRect(this.armoryBtn.x, this.armoryBtn.y, this.armoryBtn.w, this.armoryBtn.h);
@@ -262,83 +262,139 @@ export class Menu {
     ctx.font = '13px monospace';
     ctx.fillText(t('backLabel'), this.armoryBtn.x + this.armoryBtn.w / 2, this.armoryBtn.y + 21);
 
-    const colW = 340;
-    const gap = 30;
-    const startX = (VIEW_W - colW * 3 - gap * 2) / 2;
-    const rowH = 40;
-    ERAS.forEach((era, ei) => {
-      const cx = startX + ei * (colW + gap);
-      const th = ERA_THEME[era.id];
-      const ids = [
-        ...Object.values(UNITS).filter(u => u.era === era.id && !u.boss).map(u => u.id),
-        ...Object.values(TURRETS).filter(tr => tr.era === era.id).map(tr => tr.id),
-      ];
-      const panelH = 40 + ids.length * rowH;
-      ctx.fillStyle = th.panel;
-      ctx.fillRect(cx - 10, 128, colW + 20, panelH);
-      ctx.strokeStyle = th.dim;
-      ctx.strokeRect(cx - 10, 128, colW + 20, panelH);
-      ctx.fillStyle = th.accent;
-      ctx.fillRect(cx - 10, 128, colW + 20, 3);
-      ctx.font = 'bold 15px monospace';
-      ctx.fillStyle = th.accent;
-      ctx.fillText(lang === 'zh' ? nameOf(era.id, era.name) : era.name.toUpperCase(), cx + colW / 2, 152);
-      ids.forEach((id, ri) => {
-        const def = UNITS[id] ?? TURRETS[id];
-        const y = 166 + ri * rowH;
-        const owned = isOwned(id);
-        const lvl = levelOf(id);
-        ctx.textAlign = 'left';
-        ctx.fillStyle = owned ? '#c9ccd2' : '#6a6f78';
-        ctx.font = '12px monospace';
-        const nm = nameOf(id, def.name);
-        ctx.fillText(nm.length > 16 ? nm.slice(0, 16) : nm, cx + 6, y + 16);
-        // level pips
+    const chipW = 176, chipH = 44, gapX = 28, rowH = 54;
+    const labelX = 36, chipX0 = 218;
+    const xp = getXp();
+
+    const drawChip = (id: string, x: number, y: number) => {
+      const def = UNITS[id] ?? TURRETS[id];
+      const owned = isOwned(id);
+      const research = canResearch(id);
+      const lvl = levelOf(id);
+      const upPrice = owned ? upgradePrice(id) : null;
+      ctx.fillStyle = owned ? '#1a2018' : research ? '#221e14' : '#141519';
+      ctx.fillRect(x, y, chipW, chipH);
+      ctx.strokeStyle = owned ? '#5a7a4a' : research ? '#8a713a' : '#2c2f36';
+      ctx.strokeRect(x, y, chipW, chipH);
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillStyle = owned ? '#c9ccd2' : research ? '#d8bc6a' : '#565b64';
+      const nm = nameOf(id, def.name);
+      ctx.fillText(nm.length > 13 ? nm.slice(0, 13) : nm, x + 8, y + 16);
+      ctx.font = '11px monospace';
+      if (owned) {
         for (let i = 0; i < LEVEL_MAX; i++) {
           ctx.fillStyle = i < lvl ? '#e8c95c' : '#33373f';
-          ctx.fillRect(cx + 6 + i * 12, y + 22, 9, 4);
+          ctx.fillRect(x + 8 + i * 13, y + 26, 10, 5);
         }
-        // action button
-        const bw = 118, bh = 26, bx = cx + colW - bw - 6, by = y + 4;
-        const xp = getXp();
-        if (!owned) {
-          const price = buyPrice(id)!;
-          const can = xp >= price;
-          ctx.fillStyle = can ? '#26221a' : '#16171b';
-          ctx.fillRect(bx, by, bw, bh);
-          ctx.strokeStyle = can ? '#8a713a' : '#33373f';
-          ctx.strokeRect(bx, by, bw, bh);
-          ctx.fillStyle = can ? '#e8c95c' : '#555';
-          ctx.textAlign = 'center';
-          ctx.font = '11px monospace';
-          ctx.fillText(`${t('buyLabel')} ${price}`, bx + bw / 2, by + 17);
-          if (can) this.armoryRows.push({ id, action: 'buy', x: bx, y: by, w: bw, h: bh });
+        ctx.textAlign = 'right';
+        if (upPrice === null) {
+          ctx.fillStyle = '#7ea86a';
+          ctx.fillText(t('maxLabel'), x + chipW - 8, y + 33);
         } else {
-          const price = upgradePrice(id);
-          if (price === null) {
-            ctx.fillStyle = '#20261e';
-            ctx.fillRect(bx, by, bw, bh);
-            ctx.strokeStyle = '#5a7a4a';
-            ctx.strokeRect(bx, by, bw, bh);
-            ctx.fillStyle = '#7ea86a';
-            ctx.textAlign = 'center';
-            ctx.font = '11px monospace';
-            ctx.fillText(t('maxLabel'), bx + bw / 2, by + 17);
-          } else {
-            const can = xp >= price;
-            ctx.fillStyle = can ? '#1e2126' : '#16171b';
-            ctx.fillRect(bx, by, bw, bh);
-            ctx.strokeStyle = can ? '#666' : '#33373f';
-            ctx.strokeRect(bx, by, bw, bh);
-            ctx.fillStyle = can ? '#c9ccd2' : '#555';
-            ctx.textAlign = 'center';
-            ctx.font = '11px monospace';
-            ctx.fillText(`${t('upgradeLabel')} ${price}`, bx + bw / 2, by + 17);
-            if (can) this.armoryRows.push({ id, action: 'upgrade', x: bx, y: by, w: bw, h: bh });
-          }
+          const can = xp >= upPrice;
+          ctx.fillStyle = can ? '#c9ccd2' : '#4a4d55';
+          ctx.fillText(`${t('upgradeLabel')} ${upPrice}`, x + chipW - 8, y + 33);
+          if (can) this.armoryRows.push({ id, action: 'upgrade', x, y, w: chipW, h: chipH });
         }
-        ctx.textAlign = 'center';
+      } else if (research) {
+        const price = TECH[id].price;
+        const can = xp >= price;
+        ctx.fillStyle = can ? '#e8c95c' : '#6e5a38';
+        ctx.fillText(`${t('buyLabel')} ${price} XP`, x + 8, y + 33);
+        if (can) this.armoryRows.push({ id, action: 'buy', x, y, w: chipW, h: chipH });
+      } else {
+        const req = reqOf(id);
+        const reqDef = req ? (UNITS[req] ?? TURRETS[req]) : null;
+        ctx.fillStyle = '#4a4d55';
+        const rn = reqDef ? nameOf(req!, reqDef.name) : '';
+        ctx.fillText(`🔒 ${t('reqLabel')} ${rn.length > 10 ? rn.slice(0, 10) : rn}`, x + 8, y + 33);
+      }
+      ctx.textAlign = 'center';
+    };
+
+    const drawLine = (label: [string, string], ids: string[], y: number, accent: string) => {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = accent;
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(lang === 'zh' ? label[1] : label[0], labelX, y + chipH / 2 + 4);
+      ids.forEach((id, i) => {
+        const x = chipX0 + i * (chipW + gapX);
+        if (i > 0) {
+          ctx.fillStyle = isOwned(ids[i - 1]) ? '#8a8f98' : '#33373f';
+          ctx.font = '14px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('→', x - gapX / 2, y + chipH / 2 + 5);
+        }
+        drawChip(id, x, y);
       });
+      ctx.textAlign = 'center';
+    };
+
+    const section = (title: string, y: number) => {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#8a8f98';
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText(title, labelX, y);
+      ctx.strokeStyle = '#2c2f36';
+      ctx.beginPath();
+      ctx.moveTo(labelX + ctx.measureText(title).width + 14, y - 4);
+      ctx.lineTo(VIEW_W - 36, y - 4);
+      ctx.stroke();
+      ctx.textAlign = 'center';
+    };
+
+    let y = 112;
+    section(t('shipLinesTitle'), y);
+    y += 10;
+    drawLine(['DESTROYER LINE', '驱逐舰线'], ['gunboat', 'pt_boat', 'destroyer', 'lcs'], y, '#7fa3c7'); y += rowH;
+    drawLine(['CRUISER LINE', '巡洋舰线'], ['cruiser_ww1', 'cruiser_ww2', 'missile_destroyer', 'aegis_cruiser'], y, '#7fa3c7'); y += rowH;
+    drawLine(['BATTLESHIP LINE', '战列舰线'], ['dreadnought', 'battleship', 'carrier'], y, '#7fa3c7'); y += rowH;
+    drawLine(['SUBMARINE LINE', '潜艇线'], ['uboat', 'submarine_ww2', 'nuke_sub'], y, '#7fa3c7'); y += rowH;
+    y += 16;
+    section(t('airTreeTitle'), y);
+    y += 10;
+    drawLine(['FIGHTER PATH', '战斗机路线'], ['biplane', 'fighter_ww2', 'jet_fighter'], y, '#c9a15a'); y += rowH;
+    drawLine(['ATTACKER PATH', '攻击机路线'], ['zeppelin', 'dive_bomber', 'torpedo_bomber', 'uav'], y, '#c9a15a'); y += rowH;
+    y += 16;
+    section(t('turretSecTitle'), y);
+    y += 10;
+    const turretIds = Object.keys(TURRETS);
+    const tChipW = 150, tGap = 12;
+    turretIds.forEach((id, i) => {
+      const col = i % 6, row = Math.floor(i / 6);
+      drawChipNarrow(this, ctx, id, labelX + col * (tChipW + tGap), y + row * rowH, tChipW, chipH, xp);
     });
+
+    function drawChipNarrow(menu: Menu, c: CanvasRenderingContext2D, id: string, x: number, cy2: number, w: number, h: number, curXp: number) {
+      const def = TURRETS[id];
+      const lvl = levelOf(id);
+      const upPrice = upgradePrice(id);
+      c.fillStyle = '#1a2018';
+      c.fillRect(x, cy2, w, h);
+      c.strokeStyle = '#3d5236';
+      c.strokeRect(x, cy2, w, h);
+      c.textAlign = 'left';
+      c.font = 'bold 11px monospace';
+      c.fillStyle = '#c9ccd2';
+      const nm = nameOf(id, def.name);
+      c.fillText(nm.length > 11 ? nm.slice(0, 11) : nm, x + 7, cy2 + 15);
+      for (let i = 0; i < LEVEL_MAX; i++) {
+        c.fillStyle = i < lvl ? '#e8c95c' : '#33373f';
+        c.fillRect(x + 7 + i * 12, cy2 + 25, 9, 5);
+      }
+      c.textAlign = 'right';
+      c.font = '10px monospace';
+      if (upPrice === null) {
+        c.fillStyle = '#7ea86a';
+        c.fillText(t('maxLabel'), x + w - 7, cy2 + 32);
+      } else {
+        const can = curXp >= upPrice;
+        c.fillStyle = can ? '#c9ccd2' : '#4a4d55';
+        c.fillText(`${t('upgradeLabel')} ${upPrice}`, x + w - 7, cy2 + 32);
+        if (can) menu.armoryRows.push({ id, action: 'upgrade', x, y: cy2, w, h });
+      }
+      c.textAlign = 'center';
+    }
   }
 }
